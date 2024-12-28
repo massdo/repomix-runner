@@ -4,7 +4,7 @@
   "description": "Run repomix anywhere in your app tree with a simple button.",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.96.0"
+    "vscode": "^1.93.0"
   },
   "categories": [
     "Other"
@@ -14,10 +14,20 @@
   "contributes": {
     "commands": [
       {
-        "command": "repomix-runner.helloWorld",
-        "title": "Hello World"
+        "command": "repomixRunner.run",
+        "title": "Run Repomix",
+        "category": "Repomix Tools"
       }
-    ]
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "repomixRunner.run",
+          "when": "explorerResourceIsFolder",
+          "group": "navigation"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
