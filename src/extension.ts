@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { exec } from 'child_process';
-import { readFile } from 'fs/promises';
+import { readFile, unlink } from 'fs/promises';
 import { setTimeout } from 'timers/promises';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -44,6 +44,19 @@ export function activate(context: vscode.ExtensionContext) {
             try {
               const fileContent = await readFile(filePath, 'utf8');
               await vscode.env.clipboard.writeText(fileContent);
+
+              const keepOutputFile = vscode.workspace
+                .getConfiguration('repomixRunner')
+                .get('keepOutputFile');
+
+              if (!keepOutputFile) {
+                try {
+                  await unlink(filePath);
+                } catch (unlinkError) {
+                  console.error('Error deleting output file:', unlinkError);
+                }
+              }
+
               progress.report({
                 increment: 100,
                 message: 'Repomix output copied to clipboard ✅',

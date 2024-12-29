@@ -1,10 +1,10 @@
 {
   "publisher": "DorianMassoulier",
   "name": "repomix-runner",
-  "repository": "https://github.com/MassDo/repomix-runner.git",
-  "displayName": "repomix-runner",
+  "displayName": "Repomix Runner",
   "description": "Run RepoMix anywhere in your AppTree. The output is automatically copied to clipboard.",
-  "version": "0.0.1",
+  "repository": "https://github.com/MassDo/repomix-runner.git",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.93.0"
   },
@@ -14,6 +14,16 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "Repomix Runner",
+      "properties": {
+        "repomixRunner.keepOutputFile": {
+          "type": "boolean",
+          "default": false,
+          "description": "Keep the repomix-output.txt file after copying its content to clipboard"
+        }
+      }
+    },
     "commands": [
       {
         "command": "repomixRunner.run",
