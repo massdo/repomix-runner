@@ -1,7 +1,9 @@
 {
+  "publisher": "DorianMassoulier",
   "name": "repomix-runner",
+  "repository": "https://github.com/MassDo/repomix-runner.git",
   "displayName": "repomix-runner",
-  "description": "Run repomix anywhere in your app tree with a simple button.",
+  "description": "Run RepoMix anywhere in your AppTree. The output is automatically copied to clipboard.",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.93.0"
@@ -39,7 +41,7 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.96.0",
+    "@types/vscode": "^1.93.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
     "@typescript-eslint/eslint-plugin": "^8.17.0",
