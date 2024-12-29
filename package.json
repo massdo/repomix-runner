@@ -16,7 +16,7 @@
       {
         "command": "repomixRunner.run",
         "title": "Run Repomix",
-        "description": "Bundle files for ai tools",
+        "description": "run repomix in the current folder and save the output to clipboard",
         "icon": "$(book)"
       }
     ],
