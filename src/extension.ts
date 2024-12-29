@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import { exec } from 'child_process';
+import { readFile } from 'fs/promises';
+import { setTimeout } from 'timers/promises';
 
 export function activate(context: vscode.ExtensionContext) {
   const disposable = vscode.commands.registerCommand('repomixRunner.run', (uri: vscode.Uri) => {
@@ -8,19 +10,61 @@ export function activate(context: vscode.ExtensionContext) {
       return;
     }
 
-    vscode.window.showInformationMessage(`Running Repomix in: ${uri.fsPath}`);
+    vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: 'Running Repomix',
+        cancellable: true,
+      },
+      (progress, token) => {
+        return new Promise<void>((resolve, reject) => {
+          token.onCancellationRequested(() => {
+            vscode.window.showWarningMessage('Repomix operation cancelled.');
+            reject('Operation cancelled.');
+          });
 
-    exec('npx repomix', { cwd: uri.fsPath }, (error, stdout, stderr) => {
-      if (error) {
-        vscode.window.showErrorMessage(`Error: ${error.message}`);
-        return;
+          progress.report({ increment: 0, message: `Starting Repomix in ${uri.fsPath}` });
+
+          exec('npx repomix', { cwd: uri.fsPath }, async (error, stdout, stderr) => {
+            if (error) {
+              vscode.window.showErrorMessage(`Error: ${error.message}`);
+              reject(error.message);
+              return;
+            }
+            if (stderr) {
+              vscode.window.showErrorMessage(`Error: ${stderr}`);
+              reject(stderr);
+              return;
+            }
+
+            progress.report({ increment: 50, message: 'Repomix executed, processing output...' });
+
+            const filePath = `${uri.fsPath}/repomix-output.txt`;
+
+            try {
+              const fileContent = await readFile(filePath, 'utf8');
+              await vscode.env.clipboard.writeText(fileContent);
+              progress.report({
+                increment: 100,
+                message: 'Repomix output copied to clipboard ✅',
+              });
+              await setTimeout(3000);
+              resolve();
+            } catch (error) {
+              if (error instanceof Error) {
+                vscode.window.showErrorMessage(`Error reading output file: ${error.message}`);
+                reject(error.message);
+              } else {
+                vscode.window.showErrorMessage(
+                  'An unknown error occurred while reading the output file.'
+                );
+                reject('Unknown error');
+              }
+            }
+          });
+        });
       }
-      if (stderr) {
-        vscode.window.showErrorMessage(`Error: ${stderr}`);
-        return;
-      }
-      vscode.window.showInformationMessage(`Repomix executed successfully ✅ :${stdout}`);
-    });
+    );
   });
 
   context.subscriptions.push(disposable);

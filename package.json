@@ -16,7 +16,8 @@
       {
         "command": "repomixRunner.run",
         "title": "Run Repomix",
-        "category": "Repomix Tools"
+        "description": "Bundle files for ai tools",
+        "icon": "$(book)"
       }
     ],
     "menus": {
