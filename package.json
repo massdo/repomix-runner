@@ -21,6 +21,15 @@
           "type": "boolean",
           "default": false,
           "description": "Keep the repomix-output.txt file after copying its content to clipboard"
+        },
+        "repomixRunner.copyMode": {
+          "type": "string",
+          "enum": [
+            "content",
+            "file"
+          ],
+          "default": "file",
+          "description": "Choose what to copy to clipboard: 'content' for text content, 'file' for the file itself"
         }
       }
     },

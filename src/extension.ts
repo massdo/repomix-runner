@@ -45,8 +45,30 @@ async function processOutputFile(
   progress: vscode.Progress<{ message?: string; increment?: number }>
 ) {
   const filePath = `${uri.fsPath}/repomix-output.txt`;
-  const fileContent = await readFile(filePath, 'utf8');
-  await vscode.env.clipboard.writeText(fileContent);
+
+  const copyMode = vscode.workspace.getConfiguration('repomixRunner').get('copyMode');
+
+  if (copyMode === 'file') {
+    await new Promise<void>((resolve, reject) => {
+      exec(
+        `osascript -e 'on run argv' -e 'set the clipboard to item 1 of argv as «class furl»' -e 'end run' "${filePath}"`,
+        (err, stdout, stderr) => {
+          if (err) {
+            vscode.window.showErrorMessage(`Error setting file to clipboard: ${err.message}`);
+            reject(err);
+          } else if (stderr) {
+            vscode.window.showErrorMessage(`Error: ${stderr}`);
+            reject(stderr);
+          } else {
+            resolve();
+          }
+        }
+      );
+    });
+  } else {
+    const fileContent = await readFile(filePath, 'utf8');
+    await vscode.env.clipboard.writeText(fileContent);
+  }
 
   // keep the output file or not ?
   const keepOutputFile = vscode.workspace.getConfiguration('repomixRunner').get('keepOutputFile');
