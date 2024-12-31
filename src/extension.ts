@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import { exec } from 'child_process';
-import { readFile, unlink } from 'fs/promises';
+import { readFile, unlink, copyFile } from 'fs/promises';
+import * as os from 'os';
+import * as path from 'path';
 import { setTimeout } from 'timers/promises';
 
 async function runRepomixCommand(
@@ -44,14 +46,27 @@ async function processOutputFile(
   uri: vscode.Uri,
   progress: vscode.Progress<{ message?: string; increment?: number }>
 ) {
-  const filePath = `${uri.fsPath}/repomix-output.txt`;
+  const originalFilePath = path.join(uri.fsPath, 'repomix-output.txt');
+  const tmpFileName = `repomix-output-${Date.now()}.txt`;
+  const tmpFilePath = path.join(os.tmpdir(), tmpFileName);
 
+  // <==== 1) Copy the original file to the temporary directory
+  //      to use it as a source if copyMode === "file"
+  try {
+    await copyFile(originalFilePath, tmpFilePath);
+  } catch (copyError) {
+    vscode.window.showErrorMessage(`Could not copy output file to temp folder: ${copyError}`);
+    throw copyError;
+  }
+
+  // <==== 2) Retrieve the copy mode (file vs content)
   const copyMode = vscode.workspace.getConfiguration('repomixRunner').get('copyMode');
 
   if (copyMode === 'file') {
+    // <==== 3a) Copy the entire file via osascript (macOS)
     await new Promise<void>((resolve, reject) => {
       exec(
-        `osascript -e 'on run argv' -e 'set the clipboard to item 1 of argv as «class furl»' -e 'end run' "${filePath}"`,
+        `osascript -e 'on run argv' -e 'set the clipboard to item 1 of argv as «class furl»' -e 'end run' "${tmpFilePath}"`,
         (err, stdout, stderr) => {
           if (err) {
             vscode.window.showErrorMessage(`Error setting file to clipboard: ${err.message}`);
@@ -66,23 +81,32 @@ async function processOutputFile(
       );
     });
   } else {
-    const fileContent = await readFile(filePath, 'utf8');
+    // <==== 3b) Copy the content
+    const fileContent = await readFile(tmpFilePath, 'utf8');
     await vscode.env.clipboard.writeText(fileContent);
   }
 
-  // keep the output file or not ?
-  const keepOutputFile = vscode.workspace.getConfiguration('repomixRunner').get('keepOutputFile');
+  // <==== 4) Delete the temporary file
+  setTimeout(3 * 60_000).then(() => {
+    try {
+      unlink(tmpFilePath);
+    } catch (tmpUnlinkError) {
+      console.error('Error deleting temp file:', tmpUnlinkError);
+    }
+  });
 
+  // <==== 5) Handle the original file according to keepOutputFile
+  const keepOutputFile = vscode.workspace.getConfiguration('repomixRunner').get('keepOutputFile');
   if (!keepOutputFile) {
     try {
-      await unlink(filePath);
+      await unlink(originalFilePath);
     } catch (unlinkError) {
       console.error('Error deleting output file:', unlinkError);
     }
   }
 
   progress.report({ increment: 100, message: 'Repomix output copied to clipboard ✅' });
-  await setTimeout(3000); // wait 3 seconds before closing the notification
+  await setTimeout(3000);
 }
 
 export function activate(context: vscode.ExtensionContext) {
