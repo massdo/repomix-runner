@@ -5,6 +5,8 @@ import * as os from 'os';
 import * as path from 'path';
 import { setTimeout } from 'timers/promises';
 
+let lastTempFilePath: string | undefined;
+
 async function runRepomixCommand(
   uri: vscode.Uri,
   progress: vscode.Progress<{ message?: string; increment?: number }>,
@@ -49,7 +51,7 @@ async function processOutputFile(
   const originalFilePath = path.join(uri.fsPath, 'repomix-output.txt');
   const tmpFileName = `repomix-output-${Date.now()}.txt`;
   const tmpFilePath = path.join(os.tmpdir(), tmpFileName);
-
+  lastTempFilePath = tmpFilePath;
   // <==== 1) Copy the original file to the temporary directory
   //      to use it as a source if copyMode === "file"
   try {
@@ -130,3 +132,8 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {}
+
+export function getLastTempFilePath() {
+  // for test purpose
+  return lastTempFilePath;
+}
