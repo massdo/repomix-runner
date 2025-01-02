@@ -100,56 +100,67 @@ async function runRepomixCommand(
   progress: vscode.Progress<{ message?: string; increment?: number }>,
   token: vscode.CancellationToken
 ): Promise<void> {
-  return new Promise<void>(async (resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     token.onCancellationRequested(() => {
       vscode.window.showWarningMessage('Repomix operation cancelled.');
       reject('Operation cancelled.');
     });
 
-    const rootFolderPath = getRootWorkspacePath(); // Récupère la racine du projet
-    if (!rootFolderPath) {
-      vscode.window.showErrorMessage('No root workspace folder found!');
-      reject('No root folder');
-      return;
-    }
-
-    // Lire la configuration Repomix à partir de la racine
-    const config = await readRepomixConfig(rootFolderPath);
-
-    // Récupérer le fichier de sortie depuis la configuration
-    const outputFileName = config.output.filePath; // Dynamique depuis config
-    const subFolderPath = uri.fsPath; // Dossier cliqué
-    const outputFilePath = path.join(subFolderPath, outputFileName); // Chemin complet du fichier de sortie
-
-    progress.report({
-      increment: 0,
-      message: `Starting Repomix in root folder: ${rootFolderPath}`,
-    });
-
-    const cmd = `npx repomix "${subFolderPath}" --output "${outputFilePath}"`; // Commande dynamique
-
-    exec(cmd, { cwd: rootFolderPath }, async (error, stdout, stderr) => {
-      // Exécution à la racine
-      if (error) {
-        vscode.window.showErrorMessage(`Error: ${error.message}`);
-        reject(error.message);
-        return;
-      }
-      if (stderr) {
-        vscode.window.showErrorMessage(`Error: ${stderr}`);
-        reject(stderr);
-        return;
-      }
-
-      progress.report({ increment: 50, message: 'Repomix executed, processing output...' });
-
+    (async () => {
       try {
-        await processOutputFile(outputFilePath, progress, outputFileName); // Traite le fichier de sortie
-        resolve();
+        const rootFolderPath = getRootWorkspacePath(); // Récupère la racine du projet
+        if (!rootFolderPath) {
+          vscode.window.showErrorMessage('No root workspace folder found!');
+          reject('No root folder');
+          return;
+        }
+
+        // Lire la configuration Repomix à partir de la racine
+        const config = await readRepomixConfig(rootFolderPath);
+
+        // Récupérer le fichier de sortie depuis la configuration
+        const outputFileName = config.output.filePath; // Dynamique depuis config
+        const subFolderPath = uri.fsPath; // Dossier cliqué
+        const outputFilePath = path.join(subFolderPath, outputFileName); // Chemin complet du fichier de sortie
+
+        progress.report({
+          increment: 0,
+          message: `in /${path.basename(subFolderPath)} using config in /${path.basename(
+            rootFolderPath
+          )}`,
+        });
+
+        // On génère la commande
+        const cmd = `npx repomix "${subFolderPath}" --output "${outputFilePath}"`;
+
+        // Exécution de la commande avec `exec` en Promise
+        exec(cmd, { cwd: rootFolderPath }, (error, stdout, stderr) => {
+          if (error) {
+            vscode.window.showErrorMessage(`Error: ${error.message}`);
+            reject(error.message);
+            return;
+          }
+          if (stderr) {
+            vscode.window.showErrorMessage(`Error: ${stderr}`);
+            reject(stderr);
+            return;
+          }
+
+          progress.report({ increment: 50, message: 'Repomix executed, processing output...' });
+
+          // Process output file après exécution
+          processOutputFile(outputFilePath, progress, outputFileName)
+            .then(() => {
+              resolve();
+            })
+            .catch(err => {
+              reject(err);
+            });
+        });
       } catch (err) {
         reject(err);
       }
-    });
+    })();
   });
 }
 
