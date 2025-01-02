@@ -11,7 +11,7 @@ let lastTempFilePath: string | undefined;
 interface RepomixConfig {
   output: {
     filePath: string;
-    style: string;
+    style: 'plain' | 'xml' | 'markdown';
     fileSummary: boolean;
     directoryStructure: boolean;
     removeComments: boolean;
@@ -49,7 +49,7 @@ async function readRepomixConfig(rootFolderPath: string): Promise<RepomixConfig>
     return {
       output: {
         filePath: parsedConfig?.output?.filePath || 'repomix-output.txt', // Valeur par défaut
-        style: parsedConfig?.output?.style || 'xml',
+        style: parsedConfig?.output?.style || 'plain',
         fileSummary: parsedConfig?.output?.fileSummary ?? true,
         directoryStructure: parsedConfig?.output?.directoryStructure ?? true,
         removeComments: parsedConfig?.output?.removeComments ?? false,
@@ -73,7 +73,7 @@ async function readRepomixConfig(rootFolderPath: string): Promise<RepomixConfig>
     return {
       output: {
         filePath: 'repomix-output.txt',
-        style: 'xml',
+        style: 'plain',
         fileSummary: true,
         directoryStructure: true,
         removeComments: false,
