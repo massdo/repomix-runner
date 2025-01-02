@@ -1,26 +1,135 @@
 import * as vscode from 'vscode';
 import { exec } from 'child_process';
-import { readFile, unlink, copyFile } from 'fs/promises';
+import { readFile, unlink, copyFile, access } from 'fs/promises';
 import * as os from 'os';
 import * as path from 'path';
 import { setTimeout } from 'timers/promises';
 
 let lastTempFilePath: string | undefined;
 
+// Interface pour la configuration Repomix
+interface RepomixConfig {
+  output: {
+    filePath: string;
+    style: string;
+    fileSummary: boolean;
+    directoryStructure: boolean;
+    removeComments: boolean;
+    removeEmptyLines: boolean;
+    topFilesLength: number;
+    showLineNumbers: boolean;
+    copyToClipboard: boolean;
+  };
+  include: string[];
+  ignore: {
+    useGitignore: boolean;
+    useDefaultPatterns: boolean;
+    customPatterns: string[];
+  };
+  security: {
+    enableSecurityCheck: boolean;
+  };
+}
+
+// Récupérer le chemin du dossier racine du workspace
+function getRootWorkspacePath(): string | undefined {
+  const folders = vscode.workspace.workspaceFolders;
+  return folders && folders.length > 0 ? folders[0].uri.fsPath : undefined;
+}
+
+// Lire et valider la configuration Repomix
+async function readRepomixConfig(rootFolderPath: string): Promise<RepomixConfig> {
+  const configPath = path.join(rootFolderPath, 'repomix.config.json');
+  try {
+    await access(configPath); // Vérifie que le fichier existe
+    const data = await readFile(configPath, 'utf8');
+    const parsedConfig = JSON.parse(data);
+
+    // Validation et valeurs par défaut
+    return {
+      output: {
+        filePath: parsedConfig?.output?.filePath || 'repomix-output.txt', // Valeur par défaut
+        style: parsedConfig?.output?.style || 'xml',
+        fileSummary: parsedConfig?.output?.fileSummary ?? true,
+        directoryStructure: parsedConfig?.output?.directoryStructure ?? true,
+        removeComments: parsedConfig?.output?.removeComments ?? false,
+        removeEmptyLines: parsedConfig?.output?.removeEmptyLines ?? false,
+        topFilesLength: parsedConfig?.output?.topFilesLength ?? 5,
+        showLineNumbers: parsedConfig?.output?.showLineNumbers ?? false,
+        copyToClipboard: parsedConfig?.output?.copyToClipboard ?? false,
+      },
+      include: parsedConfig?.include || [],
+      ignore: {
+        useGitignore: parsedConfig?.ignore?.useGitignore ?? true,
+        useDefaultPatterns: parsedConfig?.ignore?.useDefaultPatterns ?? true,
+        customPatterns: parsedConfig?.ignore?.customPatterns || [],
+      },
+      security: {
+        enableSecurityCheck: parsedConfig?.security?.enableSecurityCheck ?? true,
+      },
+    };
+  } catch {
+    // Si pas de config ou parsing échoue, retourne une config par défaut complète
+    return {
+      output: {
+        filePath: 'repomix-output.txt',
+        style: 'xml',
+        fileSummary: true,
+        directoryStructure: true,
+        removeComments: false,
+        removeEmptyLines: false,
+        topFilesLength: 5,
+        showLineNumbers: false,
+        copyToClipboard: false,
+      },
+      include: [],
+      ignore: {
+        useGitignore: true,
+        useDefaultPatterns: true,
+        customPatterns: [],
+      },
+      security: {
+        enableSecurityCheck: true,
+      },
+    };
+  }
+}
+
 async function runRepomixCommand(
   uri: vscode.Uri,
   progress: vscode.Progress<{ message?: string; increment?: number }>,
   token: vscode.CancellationToken
 ): Promise<void> {
-  return new Promise<void>((resolve, reject) => {
+  return new Promise<void>(async (resolve, reject) => {
     token.onCancellationRequested(() => {
       vscode.window.showWarningMessage('Repomix operation cancelled.');
       reject('Operation cancelled.');
     });
 
-    progress.report({ increment: 0, message: `Starting Repomix in ${uri.fsPath}` });
+    const rootFolderPath = getRootWorkspacePath(); // Récupère la racine du projet
+    if (!rootFolderPath) {
+      vscode.window.showErrorMessage('No root workspace folder found!');
+      reject('No root folder');
+      return;
+    }
 
-    exec('npx repomix', { cwd: uri.fsPath }, async (error, stdout, stderr) => {
+    // Lire la configuration Repomix à partir de la racine
+    const config = await readRepomixConfig(rootFolderPath);
+
+    // Récupérer le fichier de sortie depuis la configuration
+    const outputFileName = config.output.filePath; // Dynamique depuis config
+    const subFolderPath = uri.fsPath; // Dossier cliqué
+    const outputFilePath = path.join(subFolderPath, outputFileName); // Chemin complet du fichier de sortie
+
+    progress.report({
+      increment: 0,
+      message: `Starting Repomix in root folder: ${rootFolderPath}`,
+    });
+
+    const cmd = `npx repomix "${subFolderPath}" --output "${outputFilePath}"`; // Commande dynamique
+
+    exec(cmd, { cwd: rootFolderPath }, async (error, stdout, stderr) => {
+      // Exécution à la racine
       if (error) {
         vscode.window.showErrorMessage(`Error: ${error.message}`);
         reject(error.message);
@@ -35,7 +144,7 @@ async function runRepomixCommand(
       progress.report({ increment: 50, message: 'Repomix executed, processing output...' });
 
       try {
-        await processOutputFile(uri, progress);
+        await processOutputFile(outputFilePath, progress, outputFileName); // Traite le fichier de sortie
         resolve();
       } catch (err) {
         reject(err);
@@ -45,15 +154,15 @@ async function runRepomixCommand(
 }
 
 async function processOutputFile(
-  uri: vscode.Uri,
-  progress: vscode.Progress<{ message?: string; increment?: number }>
+  originalFilePath: string,
+  progress: vscode.Progress<{ message?: string; increment?: number }>,
+  outputFileName: string // <==== Ajout pour utiliser le nom depuis la config
 ) {
-  const originalFilePath = path.join(uri.fsPath, 'repomix-output.txt');
-  const tmpFileName = `repomix-output-${Date.now()}.txt`;
-  const tmpFilePath = path.join(os.tmpdir(), tmpFileName);
+  // Extraire le nom de fichier de outputFileName (même si c'est un chemin)
+  const baseFileName = path.basename(outputFileName); // <==== Utilisation de path.basename
+  const tmpFilePath = path.join(os.tmpdir(), baseFileName);
   lastTempFilePath = tmpFilePath;
-  // <==== 1) Copy the original file to the temporary directory
-  //      to use it as a source if copyMode === "file"
+
   try {
     await copyFile(originalFilePath, tmpFilePath);
   } catch (copyError) {
@@ -61,11 +170,8 @@ async function processOutputFile(
     throw copyError;
   }
 
-  // <==== 2) Retrieve the copy mode (file vs content)
   const copyMode = vscode.workspace.getConfiguration('repomixRunner').get('copyMode');
-
   if (copyMode === 'file') {
-    // <==== 3a) Copy the entire file via osascript (macOS)
     await new Promise<void>((resolve, reject) => {
       exec(
         `osascript -e 'on run argv' -e 'set the clipboard to item 1 of argv as «class furl»' -e 'end run' "${tmpFilePath}"`,
@@ -83,12 +189,10 @@ async function processOutputFile(
       );
     });
   } else {
-    // <==== 3b) Copy the content
     const fileContent = await readFile(tmpFilePath, 'utf8');
     await vscode.env.clipboard.writeText(fileContent);
   }
 
-  // <==== 4) Delete the temporary file
   setTimeout(3 * 60_000).then(() => {
     try {
       unlink(tmpFilePath);
@@ -97,7 +201,6 @@ async function processOutputFile(
     }
   });
 
-  // <==== 5) Handle the original file according to keepOutputFile
   const keepOutputFile = vscode.workspace.getConfiguration('repomixRunner').get('keepOutputFile');
   if (!keepOutputFile) {
     try {
@@ -134,6 +237,5 @@ export function activate(context: vscode.ExtensionContext) {
 export function deactivate() {}
 
 export function getLastTempFilePath() {
-  // for test purpose
   return lastTempFilePath;
 }
