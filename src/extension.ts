@@ -4,6 +4,7 @@ import { readFile, unlink, copyFile, access } from 'fs/promises';
 import * as os from 'os';
 import * as path from 'path';
 import { setTimeout } from 'timers/promises';
+import * as util from 'util';
 
 let lastTempFilePath: string | undefined;
 
@@ -37,9 +38,60 @@ function getRootWorkspacePath(): string | undefined {
   return folders && folders.length > 0 ? folders[0].uri.fsPath : undefined;
 }
 
-// Lire et valider la configuration Repomix
+function configToCliFlags(config: RepomixConfig): string {
+  const flags: string[] = [];
+
+  // Output options
+  if (config.output.filePath) {
+    flags.push(`--output "${config.output.filePath}"`);
+  }
+  if (config.output.style) {
+    flags.push(`--style ${config.output.style}`);
+  }
+  if (!config.output.fileSummary) {
+    flags.push('--no-file-summary');
+  }
+  if (!config.output.directoryStructure) {
+    flags.push('--no-directory-structure');
+  }
+  if (config.output.removeComments) {
+    flags.push('--remove-comments');
+  }
+  if (config.output.removeEmptyLines) {
+    flags.push('--remove-empty-lines');
+  }
+  if (config.output.showLineNumbers) {
+    flags.push('--output-show-line-numbers');
+  }
+  // if (config.output.copyToClipboard) { // conflit avec le clipboard de lextension
+  //   flags.push('--copy');
+  // }
+  if (config.output.topFilesLength !== 5) {
+    flags.push(`--top-files-len ${config.output.topFilesLength}`);
+  }
+
+  // Include patterns
+  if (config.include.length > 0) {
+    flags.push(`--include "${config.include.join(',')}"`);
+  }
+
+  // Ignore patterns
+  if (config.ignore.customPatterns.length > 0) {
+    flags.push(`--ignore "${config.ignore.customPatterns.join(',')}"`);
+  }
+
+  // Security check
+  if (!config.security.enableSecurityCheck) {
+    flags.push('--no-security-check');
+  }
+
+  return flags.join(' ');
+}
+
 async function readRepomixConfig(rootFolderPath: string): Promise<RepomixConfig> {
+  // TODO ajouter un watcher sur le fichier repomix.config.json
   const configPath = path.join(rootFolderPath, 'repomix.config.json');
+
   try {
     await access(configPath); // Vérifie que le fichier existe
     const data = await readFile(configPath, 'utf8');
@@ -48,7 +100,7 @@ async function readRepomixConfig(rootFolderPath: string): Promise<RepomixConfig>
     // Validation et valeurs par défaut
     return {
       output: {
-        filePath: parsedConfig?.output?.filePath || 'repomix-output.txt', // Valeur par défaut
+        filePath: parsedConfig?.output?.filePath || 'repomix-output.txt',
         style: parsedConfig?.output?.style || 'plain',
         fileSummary: parsedConfig?.output?.fileSummary ?? true,
         directoryStructure: parsedConfig?.output?.directoryStructure ?? true,
@@ -69,27 +121,29 @@ async function readRepomixConfig(rootFolderPath: string): Promise<RepomixConfig>
       },
     };
   } catch {
-    // Si pas de config ou parsing échoue, retourne une config par défaut complète
+    // Si pas de config ou parsing échoue, on utilise la config VS Code
+    const vsCodeConfig = vscode.workspace.getConfiguration('repomixRunner');
+
     return {
       output: {
-        filePath: 'repomix-output.txt',
-        style: 'plain',
-        fileSummary: true,
-        directoryStructure: true,
-        removeComments: false,
-        removeEmptyLines: false,
-        topFilesLength: 5,
-        showLineNumbers: false,
-        copyToClipboard: false,
+        filePath: vsCodeConfig.get('output.filePath') || 'repomix-output.txt',
+        style: vsCodeConfig.get('output.style') || 'plain',
+        fileSummary: vsCodeConfig.get('output.fileSummary') ?? true,
+        directoryStructure: vsCodeConfig.get('output.directoryStructure') ?? true,
+        removeComments: vsCodeConfig.get('output.removeComments') ?? false,
+        removeEmptyLines: vsCodeConfig.get('output.removeEmptyLines') ?? false,
+        topFilesLength: vsCodeConfig.get('output.topFilesLength') ?? 5,
+        showLineNumbers: vsCodeConfig.get('output.showLineNumbers') ?? false,
+        copyToClipboard: vsCodeConfig.get('output.copyToClipboard') ?? false,
       },
-      include: [],
+      include: vsCodeConfig.get('include') || [],
       ignore: {
-        useGitignore: true,
-        useDefaultPatterns: true,
-        customPatterns: [],
+        useGitignore: vsCodeConfig.get('ignore.useGitignore') ?? true,
+        useDefaultPatterns: vsCodeConfig.get('ignore.useDefaultPatterns') ?? true,
+        customPatterns: vsCodeConfig.get('ignore.customPatterns') || [],
       },
       security: {
-        enableSecurityCheck: true,
+        enableSecurityCheck: vsCodeConfig.get('security.enableSecurityCheck') ?? true,
       },
     };
   }
@@ -100,88 +154,79 @@ async function runRepomixCommand(
   progress: vscode.Progress<{ message?: string; increment?: number }>,
   token: vscode.CancellationToken
 ): Promise<void> {
-  return new Promise<void>((resolve, reject) => {
-    token.onCancellationRequested(() => {
-      vscode.window.showWarningMessage('Repomix operation cancelled.');
-      reject('Operation cancelled.');
-    });
-
-    (async () => {
-      try {
-        const rootFolderPath = getRootWorkspacePath(); // Récupère la racine du projet
-        if (!rootFolderPath) {
-          vscode.window.showErrorMessage('No root workspace folder found!');
-          reject('No root folder');
-          return;
-        }
-
-        // Lire la configuration Repomix à partir de la racine
-        const config = await readRepomixConfig(rootFolderPath);
-
-        // Récupérer le fichier de sortie depuis la configuration
-        const outputFileName = config.output.filePath; // Dynamique depuis config
-        const subFolderPath = uri.fsPath; // Dossier cliqué
-        const outputFilePath = path.join(subFolderPath, outputFileName); // Chemin complet du fichier de sortie
-
-        progress.report({
-          increment: 0,
-          message: `in /${path.basename(subFolderPath)} using config in /${path.basename(
-            rootFolderPath
-          )}`,
-        });
-
-        // On génère la commande
-        const cmd = `npx repomix "${subFolderPath}" --output "${outputFilePath}"`;
-
-        // Exécution de la commande avec `exec` en Promise
-        exec(cmd, { cwd: rootFolderPath }, (error, stdout, stderr) => {
-          if (error) {
-            vscode.window.showErrorMessage(`Error: ${error.message}`);
-            reject(error.message);
-            return;
-          }
-          if (stderr) {
-            vscode.window.showErrorMessage(`Error: ${stderr}`);
-            reject(stderr);
-            return;
-          }
-
-          progress.report({ increment: 50, message: 'Repomix executed, processing output...' });
-
-          // Process output file après exécution
-          processOutputFile(outputFilePath, progress, outputFileName)
-            .then(() => {
-              resolve();
-            })
-            .catch(err => {
-              reject(err);
-            });
-        });
-      } catch (err) {
-        reject(err);
-      }
-    })();
+  token.onCancellationRequested(() => {
+    vscode.window.showWarningMessage('Repomix operation cancelled.');
+    throw new Error('Operation cancelled.');
   });
+
+  const targetFolderPath = uri.fsPath;
+  const rootFolderPath = getRootWorkspacePath();
+
+  if (!rootFolderPath) {
+    vscode.window.showErrorMessage('No root workspace folder found!');
+    throw new Error('No root folder');
+  }
+
+  let config = await readRepomixConfig(rootFolderPath); // TODO faire un merge des config repomix et extensions pour utiliser un seul config
+
+  const useTargetAsOutput = vscode.workspace // TODO a mettre dans traitement config
+    .getConfiguration('repomix.runner')
+    .get('useTargetAsOutput');
+
+  if (useTargetAsOutput) {
+    config.output.filePath = path.join(targetFolderPath, config.output.filePath);
+  }
+
+  // On génère la commande avec les flags
+  const cliFlags = configToCliFlags(config);
+
+  progress.report({
+    increment: 0,
+    message: `in /${path.basename(targetFolderPath)}`,
+  });
+
+  // On génère la commande
+  const cmd = `npx -y repomix "${targetFolderPath}" ${cliFlags}`;
+
+  // Utiliser promisify pour transformer exec en Promise
+  const execPromise = util.promisify(exec);
+
+  try {
+    const { stderr } = await execPromise(cmd, { cwd: rootFolderPath });
+
+    if (stderr) {
+      vscode.window.showErrorMessage(`Error: ${stderr}`);
+      throw new Error(stderr);
+    }
+
+    progress.report({ increment: 50, message: 'Repomix executed, processing output...' });
+
+    const outputFilePathAbs = path.resolve(targetFolderPath, config.output.filePath); // TODO couplage ici ?
+
+    await processOutputFile(outputFilePathAbs, progress);
+  } catch (error: any) {
+    vscode.window.showErrorMessage(error.message);
+    throw error;
+  }
 }
 
 async function processOutputFile(
-  originalFilePath: string,
-  progress: vscode.Progress<{ message?: string; increment?: number }>,
-  outputFileName: string // <==== Ajout pour utiliser le nom depuis la config
+  outputFilePathAbs: string,
+  progress: vscode.Progress<{ message?: string; increment?: number }>
 ) {
-  // Extraire le nom de fichier de outputFileName (même si c'est un chemin)
-  const baseFileName = path.basename(outputFileName); // <==== Utilisation de path.basename
-  const tmpFilePath = path.join(os.tmpdir(), baseFileName);
+  console.log('outputFilePathAbs', outputFilePathAbs);
+  const baseFileName = path.basename(outputFilePathAbs);
+  const tmpFilePath = path.join(os.tmpdir(), 'repomix-runner-' + baseFileName);
   lastTempFilePath = tmpFilePath;
 
   try {
-    await copyFile(originalFilePath, tmpFilePath);
+    await copyFile(outputFilePathAbs, tmpFilePath);
   } catch (copyError) {
     vscode.window.showErrorMessage(`Could not copy output file to temp folder: ${copyError}`);
     throw copyError;
   }
 
-  const copyMode = vscode.workspace.getConfiguration('repomixRunner').get('copyMode');
+  const copyMode = vscode.workspace.getConfiguration('repomix.runner').get('copyMode'); // TODO a mettre dans traitement config
   if (copyMode === 'file') {
     await new Promise<void>((resolve, reject) => {
       exec(
@@ -204,25 +249,19 @@ async function processOutputFile(
     await vscode.env.clipboard.writeText(fileContent);
   }
 
-  setTimeout(3 * 60_000).then(() => {
-    try {
-      unlink(tmpFilePath);
-    } catch (tmpUnlinkError) {
-      console.error('Error deleting temp file:', tmpUnlinkError);
-    }
-  });
+  cleanupTempFile(tmpFilePath); // TODO refator the clean up using meca that delete the dir content except last file
 
-  const keepOutputFile = vscode.workspace.getConfiguration('repomixRunner').get('keepOutputFile');
+  const keepOutputFile = vscode.workspace.getConfiguration('repomix.runner').get('keepOutputFile'); // TODO à mettre dans la config
   if (!keepOutputFile) {
     try {
-      await unlink(originalFilePath);
+      await unlink(outputFilePathAbs);
     } catch (unlinkError) {
       console.error('Error deleting output file:', unlinkError);
     }
   }
 
   progress.report({ increment: 100, message: 'Repomix output copied to clipboard ✅' });
-  await setTimeout(3000);
+  await setTimeout(3000); // keep the popup open for 3s
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -245,7 +284,27 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposable);
 }
 
-export function deactivate() {}
+async function cleanupTempFile(tmpFilePath: string): Promise<void> {
+  try {
+    await setTimeout(1 * 60_000);
+    // Check if file exists before trying to delete
+    try {
+      await access(tmpFilePath);
+      await unlink(tmpFilePath);
+    } catch (error: any) {
+      if (error.code !== 'ENOENT') {
+        throw error;
+      }
+      // File doesn't exist, nothing to do
+    }
+  } catch (error) {
+    console.log(`Failed to delete temp file ${tmpFilePath}:`, error);
+  }
+}
+
+export function deactivate() {
+  // TODO add a cleanup function that delete the temp dir
+}
 
 export function getLastTempFilePath() {
   return lastTempFilePath;
