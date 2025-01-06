@@ -122,7 +122,7 @@ async function readRepomixConfig(rootFolderPath: string): Promise<RepomixConfig>
     };
   } catch {
     // Si pas de config ou parsing échoue, on utilise la config VS Code
-    const vsCodeConfig = vscode.workspace.getConfiguration('repomixRunner');
+    const vsCodeConfig = vscode.workspace.getConfiguration('repomix');
 
     return {
       output: {
