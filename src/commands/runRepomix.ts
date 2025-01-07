@@ -2,16 +2,12 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as util from 'util';
 import { exec } from 'child_process';
-import { readRepomixConfig, configToCliFlags } from '../config';
-import { copyToClipboard, cleanOutputFile, cleanupTempFile } from '../features';
 import { setTimeout } from 'timers/promises';
+import { mergeConfigs, readRunnerConfig, readBaseConfig, getCwd } from '../config';
+import { copyToClipboard, cleanOutputFile, cleanupTempFile } from '../features';
+import { generateCliFlags } from '../core/cli/generateCliFlags';
 
-export function getWorkspacePath(): string | undefined {
-  const folders = vscode.workspace.workspaceFolders;
-  return folders && folders.length > 0 ? folders[0].uri.fsPath : undefined;
-}
-
-export async function runRepomix(
+export async function runRepomix( // TODO il faut passer en param le chemin du fichier temporaire ici
   uri: vscode.Uri,
   progress: vscode.Progress<{ message?: string; increment?: number }>,
   token: vscode.CancellationToken
@@ -22,39 +18,28 @@ export async function runRepomix(
   });
 
   const targetFolderPath = uri.fsPath;
-  const rootFolderPath = getWorkspacePath();
-
-  if (!rootFolderPath) {
-    vscode.window.showErrorMessage('No root workspace folder found!');
-    throw new Error('No root folder');
-  }
-
-  let config = await readRepomixConfig(rootFolderPath); // TODO faire un merge des config repomix et extensions pour utiliser un seul config
-
-  const useTargetAsOutput = vscode.workspace // TODO a mettre dans traitement config
-    .getConfiguration('repomix.runner')
-    .get('useTargetAsOutput');
-
-  if (useTargetAsOutput) {
-    config.output.filePath = path.join(targetFolderPath, config.output.filePath);
-  }
-
-  // On génère la commande avec les flags
-  const cliFlags = configToCliFlags(config);
 
   progress.report({
     increment: 0,
     message: `in /${path.basename(targetFolderPath)}`,
   });
 
-  // On génère la commande
+  const cwd = getCwd();
+
+  // Load config and write repomix command with corresponding flags
+  const runnerConfig = readRunnerConfig();
+  const baseConfig = await readBaseConfig(cwd);
+  const config = mergeConfigs(cwd, runnerConfig, baseConfig, targetFolderPath);
+
+  const cliFlags = generateCliFlags(config);
+
   const cmd = `npx -y repomix "${targetFolderPath}" ${cliFlags}`;
 
-  // Utiliser promisify pour transformer exec en Promise
   const execPromise = util.promisify(exec);
 
+  // Execute repomix
   try {
-    const { stderr } = await execPromise(cmd, { cwd: rootFolderPath });
+    const { stderr } = await execPromise(cmd, { cwd: cwd });
 
     if (stderr) {
       vscode.window.showErrorMessage(`Error: ${stderr}`);
@@ -65,11 +50,12 @@ export async function runRepomix(
 
     const outputFilePathAbs = path.resolve(targetFolderPath, config.output.filePath); // TODO couplage ici ?
 
-    await copyToClipboard(outputFilePathAbs);
-    await cleanOutputFile(outputFilePathAbs);
-    await cleanupTempFile(outputFilePathAbs);
+    await copyToClipboard(outputFilePathAbs); // TODO il faut passer le chemin du fichier temporaire ici
 
     progress.report({ increment: 100, message: 'Repomix output copied to clipboard ✅' });
+
+    await cleanOutputFile(outputFilePathAbs, config.keepOutputFile);
+    cleanupTempFile(outputFilePathAbs);
 
     await setTimeout(3000); // keep the popup open for 3s
   } catch (error: any) {

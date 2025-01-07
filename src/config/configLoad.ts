@@ -1,9 +1,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { access } from 'fs/promises';
-import { readFile } from 'fs/promises';
+import { access, readFile } from 'fs/promises';
 
-export interface RepomixConfig {
+interface RepomixConfig {
   output: {
     filePath: string;
     style: 'plain' | 'xml' | 'markdown';
@@ -26,40 +25,29 @@ export interface RepomixConfig {
   };
 }
 
-export async function readRepomixConfig(rootFolderPath: string): Promise<RepomixConfig> {
-  // TODO ajouter un watcher sur le fichier repomix.config.json
-  const configPath = path.join(rootFolderPath, 'repomix.config.json');
+interface RepomixRunnerConfig {
+  keepOutputFile: boolean;
+  copyMode: 'content' | 'file';
+  useTargetAsOutput: boolean;
+}
+
+export function readRunnerConfig(): RepomixRunnerConfig {
+  const config = vscode.workspace.getConfiguration('repomix.runner');
+  return {
+    keepOutputFile: config.get('keepOutputFile') ?? true,
+    copyMode: config.get('copyMode') ?? 'content',
+    useTargetAsOutput: config.get('useTargetAsOutput') ?? true,
+  };
+}
+
+export async function readBaseConfig(cwd: string): Promise<RepomixConfig> {
+  const configPath = path.join(cwd, 'repomix.config.json');
 
   try {
-    await access(configPath); // Vérifie que le fichier existe
+    await access(configPath);
     const data = await readFile(configPath, 'utf8');
-    const parsedConfig = JSON.parse(data);
-
-    // Validation et valeurs par défaut
-    return {
-      output: {
-        filePath: parsedConfig?.output?.filePath || 'repomix-output.txt',
-        style: parsedConfig?.output?.style || 'plain',
-        fileSummary: parsedConfig?.output?.fileSummary ?? true,
-        directoryStructure: parsedConfig?.output?.directoryStructure ?? true,
-        removeComments: parsedConfig?.output?.removeComments ?? false,
-        removeEmptyLines: parsedConfig?.output?.removeEmptyLines ?? false,
-        topFilesLength: parsedConfig?.output?.topFilesLength ?? 5,
-        showLineNumbers: parsedConfig?.output?.showLineNumbers ?? false,
-        copyToClipboard: parsedConfig?.output?.copyToClipboard ?? false,
-      },
-      include: parsedConfig?.include || [],
-      ignore: {
-        useGitignore: parsedConfig?.ignore?.useGitignore ?? true,
-        useDefaultPatterns: parsedConfig?.ignore?.useDefaultPatterns ?? true,
-        customPatterns: parsedConfig?.ignore?.customPatterns || [],
-      },
-      security: {
-        enableSecurityCheck: parsedConfig?.security?.enableSecurityCheck ?? true,
-      },
-    };
+    return JSON.parse(data);
   } catch {
-    // Si pas de config ou parsing échoue, on utilise la config VS Code
     const vsCodeConfig = vscode.workspace.getConfiguration('repomix');
 
     return {
@@ -85,4 +73,27 @@ export async function readRepomixConfig(rootFolderPath: string): Promise<Repomix
       },
     };
   }
+}
+
+export interface MergedConfig extends RepomixConfig, RepomixRunnerConfig {
+  cwd: string;
+}
+
+export function mergeConfigs(
+  cwd: string,
+  runnerConfig: RepomixRunnerConfig,
+  baseConfig: RepomixConfig,
+  targetFolderPath: string
+): MergedConfig {
+  return {
+    cwd,
+    ...baseConfig,
+    ...runnerConfig,
+    output: {
+      ...baseConfig.output,
+      filePath: runnerConfig.useTargetAsOutput
+        ? path.join(targetFolderPath, baseConfig.output.filePath)
+        : baseConfig.output.filePath,
+    },
+  };
 }

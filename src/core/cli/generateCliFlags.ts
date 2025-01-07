@@ -1,6 +1,6 @@
-import { RepomixConfig } from './readRepomixConfig';
+import { MergedConfig } from '../../config/configLoad';
 
-export function configToCliFlags(config: RepomixConfig): string {
+export function generateCliFlags(config: MergedConfig): string {
   const flags: string[] = [];
 
   // Output options

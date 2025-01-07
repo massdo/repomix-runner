@@ -1,8 +1,6 @@
-import * as vscode from 'vscode';
 import { unlink } from 'fs/promises';
 
-export async function cleanOutputFile(outputFilePathAbs: string) {
-  const keepOutputFile = vscode.workspace.getConfiguration('repomix.runner').get('keepOutputFile'); // TODO à mettre dans la config
+export async function cleanOutputFile(outputFilePathAbs: string, keepOutputFile: boolean) {
   if (!keepOutputFile) {
     try {
       await unlink(outputFilePathAbs);

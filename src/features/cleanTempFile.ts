@@ -3,7 +3,7 @@ import { setTimeout } from 'timers/promises';
 
 export async function cleanupTempFile(tmpFilePath: string): Promise<void> {
   try {
-    await setTimeout(1 * 60_000);
+    await setTimeout(3 * 60_000);
     // Check if file exists before trying to delete
     try {
       await access(tmpFilePath);
