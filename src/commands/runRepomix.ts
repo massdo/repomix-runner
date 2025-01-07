@@ -29,7 +29,7 @@ export async function runRepomix( // TODO il faut passer en param le chemin du f
   // Load config and write repomix command with corresponding flags
   const runnerConfig = readRunnerConfig();
   const baseConfig = await readBaseConfig(cwd);
-  const config = mergeConfigs(runnerConfig, baseConfig, targetPathAbs);
+  const config = mergeConfigs(cwd, runnerConfig, baseConfig, targetPathAbs);
 
   const cliFlags = generateCliFlags(config);
 

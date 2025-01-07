@@ -78,6 +78,7 @@ export async function readBaseConfig(cwd: string): Promise<RepomixConfig> {
 export interface MergedConfig extends RepomixConfig, RepomixRunnerConfig {}
 
 export function mergeConfigs(
+  cwd: string,
   runnerConfig: RepomixRunnerConfig,
   baseConfig: RepomixConfig,
   targetPathAbs: string
@@ -89,7 +90,7 @@ export function mergeConfigs(
       ...baseConfig.output,
       filePath: runnerConfig.useTargetAsOutput
         ? path.resolve(targetPathAbs, baseConfig.output.filePath)
-        : baseConfig.output.filePath,
+        : path.resolve(cwd, baseConfig.output.filePath),
     },
   };
 }
