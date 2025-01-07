@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as os from 'os';
 import * as util from 'util';
 import { exec } from 'child_process';
 import { setTimeout } from 'timers/promises';
@@ -17,23 +18,22 @@ export async function runRepomix( // TODO il faut passer en param le chemin du f
     throw new Error('Operation cancelled.');
   });
 
-  const targetFolderPath = uri.fsPath;
+  const cwd = getCwd();
+  const targetPathAbs = uri.fsPath;
 
   progress.report({
     increment: 0,
-    message: `in /${path.basename(targetFolderPath)}`,
+    message: `in /${path.basename(targetPathAbs)}`,
   });
-
-  const cwd = getCwd();
 
   // Load config and write repomix command with corresponding flags
   const runnerConfig = readRunnerConfig();
   const baseConfig = await readBaseConfig(cwd);
-  const config = mergeConfigs(cwd, runnerConfig, baseConfig, targetFolderPath);
+  const config = mergeConfigs(runnerConfig, baseConfig, targetPathAbs);
 
   const cliFlags = generateCliFlags(config);
 
-  const cmd = `npx -y repomix "${targetFolderPath}" ${cliFlags}`;
+  const cmd = `npx -y repomix "${targetPathAbs}" ${cliFlags}`;
 
   const execPromise = util.promisify(exec);
 
@@ -48,14 +48,16 @@ export async function runRepomix( // TODO il faut passer en param le chemin du f
 
     progress.report({ increment: 50, message: 'Repomix executed, processing output...' });
 
-    const outputFilePathAbs = path.resolve(targetFolderPath, config.output.filePath); // TODO couplage ici ?
+    const outputFileRel = path.relative(cwd, config.output.filePath);
+    const tmpFilePath = path.join(os.tmpdir(), 'repomix_' + outputFileRel.split('/').join('_'));
 
-    await copyToClipboard(outputFilePathAbs); // TODO il faut passer le chemin du fichier temporaire ici
+    await copyToClipboard(config.output.filePath, tmpFilePath);
 
     progress.report({ increment: 100, message: 'Repomix output copied to clipboard ✅' });
 
-    await cleanOutputFile(outputFilePathAbs, config.keepOutputFile);
-    cleanupTempFile(outputFilePathAbs);
+    await cleanOutputFile(config.output.filePath, config.keepOutputFile);
+
+    cleanupTempFile(tmpFilePath);
 
     await setTimeout(3000); // keep the popup open for 3s
   } catch (error: any) {
