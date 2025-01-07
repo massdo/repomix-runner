@@ -19,7 +19,7 @@
       "properties": {
         "repomix.runner.keepOutputFile": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "description": " 📌 \n Keep the output file after copying its content to clipboard"
         },
         "repomix.runner.copyMode": {
