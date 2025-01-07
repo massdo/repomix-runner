@@ -4,7 +4,7 @@
   "displayName": "Repomix Runner",
   "description": "Run Repomix anywhere in your AppTree. The output is copied to clipboard. No more output file to delete.",
   "repository": "https://github.com/MassDo/repomix-runner.git",
-  "version": "0.0.3",
+  "version": "0.0.6",
   "engines": {
     "vscode": "^1.93.0"
   },
@@ -15,21 +15,102 @@
   "main": "./out/extension.js",
   "contributes": {
     "configuration": {
-      "title": "Repomix Runner",
+      "title": "Repomix",
       "properties": {
-        "repomixRunner.keepOutputFile": {
+        "repomix.runner.keepOutputFile": {
           "type": "boolean",
-          "default": false,
-          "description": "Keep the repomix-output.txt file after copying its content to clipboard"
+          "default": true,
+          "description": " 📌 \n Keep the output file after copying its content to clipboard"
         },
-        "repomixRunner.copyMode": {
+        "repomix.runner.copyMode": {
           "type": "string",
           "enum": [
             "content",
             "file"
           ],
           "default": "file",
-          "description": "Choose what to copy to clipboard: 'content' for text content, 'file' for the file itself"
+          "description": "✍️ or 💾 \n Choose what to copy to clipboard: 'content' for text content, 'file' for the file itself"
+        },
+        "repomix.runner.useTargetAsOutput": {
+          "type": "boolean",
+          "default": true,
+          "description": "🎯 ➡️  🎯 \n Use the targetted folder as the output folder"
+        },
+        "repomix.output.filePath": {
+          "type": "string",
+          "default": "repomix-output.txt",
+          "description": "⚙️ ➡️ ❓\n Path to the output file"
+        },
+        "repomix.output.style": {
+          "type": "string",
+          "enum": [
+            "plain",
+            "xml",
+            "markdown"
+          ],
+          "default": "plain",
+          "description": "🎨 \n Output format style"
+        },
+        "repomix.output.fileSummary": {
+          "type": "boolean",
+          "default": true,
+          "description": "➕📝\n Include file summary in output"
+        },
+        "repomix.output.directoryStructure": {
+          "type": "boolean",
+          "default": true,
+          "description": "➕🌳 \n Include directory tree structure in output"
+        },
+        "repomix.output.removeComments": {
+          "type": "boolean",
+          "default": false,
+          "description": "💬 ❌  \n Remove comments from code"
+        },
+        "repomix.output.removeEmptyLines": {
+          "type": "boolean",
+          "default": false,
+          "description": "🧹 \n Remove empty lines from code"
+        },
+        "repomix.output.topFilesLength": {
+          "type": "number",
+          "default": 5,
+          "description": "Number of top files to show"
+        },
+        "repomix.output.showLineNumbers": {
+          "type": "boolean",
+          "default": false,
+          "description": "🔢 \n Show line numbers in output"
+        },
+        "repomix.include": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "🔍 \n Patterns to include in processing"
+        },
+        "repomix.ignore.useGitignore": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use .gitignore patterns"
+        },
+        "repomix.ignore.useDefaultPatterns": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use default ignore patterns"
+        },
+        "repomix.ignore.customPatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "🙈 \n Custom patterns to ignore"
+        },
+        "repomix.security.enableSecurityCheck": {
+          "type": "boolean",
+          "default": true,
+          "description": "🔒 \n Enable security check during processing"
         }
       }
     },
@@ -60,14 +141,15 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.93.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
+    "@types/vscode": "^1.93.0",
     "@typescript-eslint/eslint-plugin": "^8.17.0",
     "@typescript-eslint/parser": "^8.17.0",
-    "eslint": "^9.16.0",
-    "typescript": "^5.7.2",
     "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.4.1"
+    "@vscode/test-electron": "^2.4.1",
+    "eslint": "^9.16.0",
+    "picocolors": "^1.1.1",
+    "typescript": "^5.7.2"
   }
 }
