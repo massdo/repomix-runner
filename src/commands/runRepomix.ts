@@ -19,21 +19,21 @@ export async function runRepomix( // TODO il faut passer en param le chemin du f
   });
 
   const cwd = getCwd();
-  const targetPathAbs = uri.fsPath;
+  const targetDir = uri.fsPath;
 
   progress.report({
     increment: 0,
-    message: `in /${path.basename(targetPathAbs)}`,
+    message: `in /${path.basename(targetDir)}`,
   });
 
   // Load config and write repomix command with corresponding flags
   const runnerConfig = readRunnerConfig();
   const baseConfig = await readBaseConfig(cwd);
-  const config = mergeConfigs(cwd, runnerConfig, baseConfig, targetPathAbs);
+  const config = mergeConfigs(cwd, runnerConfig, baseConfig, targetDir);
 
   const cliFlags = generateCliFlags(config);
 
-  const cmd = `npx -y repomix "${targetPathAbs}" ${cliFlags}`;
+  const cmd = `npx -y repomix "${config.targetDir}" ${cliFlags}`;
 
   const execPromise = util.promisify(exec);
 
@@ -48,8 +48,10 @@ export async function runRepomix( // TODO il faut passer en param le chemin du f
 
     progress.report({ increment: 50, message: 'Repomix executed, processing output...' });
 
-    const outputFileRel = path.relative(cwd, config.output.filePath);
-    const tmpFilePath = path.join(os.tmpdir(), 'repomix_' + outputFileRel.split('/').join('_'));
+    const tmpFilePath = path.join(
+      os.tmpdir(),
+      'repomix_' + config.targetPathRelative.split('/').join('_')
+    );
 
     await copyToClipboard(config.output.filePath, tmpFilePath);
 
