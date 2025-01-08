@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import util from 'node:util';
-import pc from 'picocolors';
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'success' | 'trace' | 'log';
+type LogTarget = 'console' | 'output' | 'both';
 
 class Logger {
   private isVerbose = false;
@@ -12,12 +12,10 @@ class Logger {
     this.outputChannel = vscode.window.createOutputChannel('Repomix runner');
   }
 
-  // Sous-objets pour console, output, et both
   console = this.createLogMethods('console');
   output = this.createLogMethods('output');
-  both = this.createLogMethods('both'); // Ajoute pour écrire dans les deux cibles
+  both = this.createLogMethods('both');
 
-  // Par défaut, log dans la console
   success(...args: unknown[]) {
     this.console.success(...args);
   }
@@ -27,8 +25,7 @@ class Logger {
     this.isVerbose = value;
   }
 
-  // Crée des méthodes de log pour une cible donnée
-  private createLogMethods(target: 'console' | 'output' | 'both') {
+  private createLogMethods(target: LogTarget) {
     return {
       debug: (...args: unknown[]) => this.isVerbose && this.log('debug', target, ...args),
       info: (...args: unknown[]) => this.log('info', target, ...args),
@@ -40,21 +37,18 @@ class Logger {
     };
   }
 
-  // Méthode générique pour logger dans console, output ou les deux
-  private log(level: LogLevel, target: 'console' | 'output' | 'both', ...args: unknown[]) {
+  private log(level: LogLevel, target: LogTarget, ...args: unknown[]) {
     const formattedMessage = this.formatArgs(args);
-    const coloredMessage = this.colorize(level, formattedMessage);
+    const emojiMessage = this.addEmoji(level, formattedMessage);
 
     if (target === 'console' || target === 'both') {
-      this.logToConsole(level, coloredMessage);
+      this.logToConsole(level, emojiMessage);
     }
     if (target === 'output' || target === 'both') {
-      const emojiMessage = this.addEmoji(level, formattedMessage);
       this.logToOutputChannel(emojiMessage);
     }
   }
 
-  // Ajoute des émojis pour simuler des "couleurs" dans l'Output Channel
   private addEmoji(level: LogLevel, message: string): string {
     switch (level) {
       case 'debug':
@@ -75,27 +69,6 @@ class Logger {
     }
   }
 
-  // Colorisation des messages pour la console uniquement
-  private colorize(level: LogLevel, message: string): string {
-    switch (level) {
-      case 'debug':
-        return pc.blue(message);
-      case 'info':
-        return pc.cyan(message);
-      case 'warn':
-        return pc.yellow(message);
-      case 'error':
-        return pc.red(message);
-      case 'success':
-        return pc.green(message);
-      case 'trace':
-        return pc.gray(message);
-      case 'log':
-      default:
-        return message; // Pas de couleur pour log standard
-    }
-  }
-
   // Log dans la console
   private logToConsole(level: LogLevel, message: string) {
     switch (level) {
@@ -110,19 +83,17 @@ class Logger {
     }
   }
 
-  // Log dans l'Output Channel avec emojis
   private logToOutputChannel(message: string) {
     if (this.outputChannel) {
       this.outputChannel.appendLine(message);
-      this.outputChannel.show(true); // Montre le canal quand il est activé
+      this.outputChannel.show(true);
     }
   }
 
-  // Formate les arguments pour les afficher comme texte
   private formatArgs(args: unknown[]): string {
     return args
       .map(arg =>
-        typeof arg === 'object' ? util.inspect(arg, { depth: null, colors: true }) : String(arg)
+        typeof arg === 'object' ? util.inspect(arg, { depth: null, colors: false }) : String(arg)
       )
       .join(' ');
   }
