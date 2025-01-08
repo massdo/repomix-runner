@@ -9,12 +9,13 @@ class Logger {
   private outputChannel: vscode.OutputChannel | null = null;
 
   constructor() {
-    this.outputChannel = vscode.window.createOutputChannel('Repomix runner logs');
+    this.outputChannel = vscode.window.createOutputChannel('Repomix runner');
   }
 
-  // Sous-objets pour console et output
+  // Sous-objets pour console, output, et both
   console = this.createLogMethods('console');
   output = this.createLogMethods('output');
+  both = this.createLogMethods('both'); // Ajoute pour écrire dans les deux cibles
 
   // Par défaut, log dans la console
   success(...args: unknown[]) {
@@ -27,9 +28,9 @@ class Logger {
   }
 
   // Crée des méthodes de log pour une cible donnée
-  private createLogMethods(target: 'console' | 'output') {
+  private createLogMethods(target: 'console' | 'output' | 'both') {
     return {
-      debug: (...args: unknown[]) => this.log('debug', target, ...args),
+      debug: (...args: unknown[]) => this.isVerbose && this.log('debug', target, ...args),
       info: (...args: unknown[]) => this.log('info', target, ...args),
       warn: (...args: unknown[]) => this.log('warn', target, ...args),
       error: (...args: unknown[]) => this.log('error', target, ...args),
@@ -39,19 +40,42 @@ class Logger {
     };
   }
 
-  // Méthode générique pour logger dans console ou output
-  private log(level: LogLevel, target: 'console' | 'output', ...args: unknown[]) {
+  // Méthode générique pour logger dans console, output ou les deux
+  private log(level: LogLevel, target: 'console' | 'output' | 'both', ...args: unknown[]) {
     const formattedMessage = this.formatArgs(args);
     const coloredMessage = this.colorize(level, formattedMessage);
 
-    if (target === 'console') {
+    if (target === 'console' || target === 'both') {
       this.logToConsole(level, coloredMessage);
-    } else if (target === 'output') {
-      this.logToOutputChannel(coloredMessage);
+    }
+    if (target === 'output' || target === 'both') {
+      const emojiMessage = this.addEmoji(level, formattedMessage);
+      this.logToOutputChannel(emojiMessage);
     }
   }
 
-  // Colorisation des messages selon le niveau
+  // Ajoute des émojis pour simuler des "couleurs" dans l'Output Channel
+  private addEmoji(level: LogLevel, message: string): string {
+    switch (level) {
+      case 'debug':
+        return `🔍 [DEBUG]: ${message}`;
+      case 'info':
+        return `ℹ️ [INFO]: ${message}`;
+      case 'warn':
+        return `⚠️ [WARN]: ${message}`;
+      case 'error':
+        return `❌ [ERROR]: ${message}`;
+      case 'success':
+        return `✅ [SUCCESS]: ${message}`;
+      case 'trace':
+        return `📍 [TRACE]: ${message}`;
+      case 'log':
+      default:
+        return `[LOG]: ${message}`;
+    }
+  }
+
+  // Colorisation des messages pour la console uniquement
   private colorize(level: LogLevel, message: string): string {
     switch (level) {
       case 'debug':
@@ -86,7 +110,7 @@ class Logger {
     }
   }
 
-  // Log dans l'Output Channel
+  // Log dans l'Output Channel avec emojis
   private logToOutputChannel(message: string) {
     if (this.outputChannel) {
       this.outputChannel.appendLine(message);
