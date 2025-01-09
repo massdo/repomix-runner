@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { runRepomix } from './commands';
+import { logger } from './shared/logger';
 
 export function activate(context: vscode.ExtensionContext) {
   const disposable = vscode.commands.registerCommand('repomixRunner.run', (uri?: vscode.Uri) => {
@@ -12,19 +13,13 @@ export function activate(context: vscode.ExtensionContext) {
       uri = workspaceFolders[0].uri;
     }
 
-    vscode.window.withProgress(
-      {
-        location: vscode.ProgressLocation.Notification,
-        title: 'Running Repomix',
-        cancellable: true,
-      },
-      (progress, token) => runRepomix(uri!, progress, token)
-    );
+    runRepomix(uri!);
   });
 
   context.subscriptions.push(disposable);
 }
 
 export function deactivate() {
+  logger.both.debug('deactivate repomix runner');
   // TODO add a cleanup function that delete the temp dir
 }

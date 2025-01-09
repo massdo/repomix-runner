@@ -86,7 +86,6 @@ class Logger {
   private logToOutputChannel(message: string) {
     if (this.outputChannel) {
       this.outputChannel.appendLine(message);
-      this.outputChannel.show(true);
     }
   }
 
@@ -98,5 +97,31 @@ class Logger {
       .join(' ');
   }
 }
-
+/**
+ * Logger utility class that provides logging functionality for both console and VS Code output channel.
+ * Supports different log levels and targets with emoji indicators.
+ *
+ * Examples:
+ * ```typescript
+ * // Log to console only
+ * logger.console.info('Starting process');
+ * logger.console.error('Error occurred:', new Error('Something went wrong'));
+ * logger.console.success('Task completed');
+ *
+ * // Log to VS Code output channel only
+ * logger.output.debug('Debug information');
+ * logger.output.warn('Warning message');
+ *
+ * // Log to both console and output channel
+ * logger.both.info('Processing file:', { name: 'example.txt', size: '1KB' });
+ * logger.both.trace('Detailed operation info');
+ *
+ * // Direct success method (logs to console)
+ * logger.success('Operation successful!');
+ *
+ * // Enable debug/trace logs
+ * logger.setVerbose(true);
+ * logger.console.debug('This will now be visible');
+ * ```
+ */
 export const logger = new Logger();

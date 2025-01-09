@@ -2,29 +2,16 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as os from 'os';
 import * as util from 'util';
+import { logger } from '../shared/logger';
 import { exec } from 'child_process';
-import { setTimeout } from 'timers/promises';
 import { mergeConfigs, readRunnerConfig, readBaseConfig, getCwd } from '../config';
 import { copyToClipboard, cleanOutputFile, cleanupTempFile } from '../features';
 import { generateCliFlags } from '../core/cli/generateCliFlags';
+import { showTempNotification } from '../shared/showTempNotification';
 
-export async function runRepomix( // TODO il faut passer en param le chemin du fichier temporaire ici
-  uri: vscode.Uri,
-  progress: vscode.Progress<{ message?: string; increment?: number }>,
-  token: vscode.CancellationToken
-): Promise<void> {
-  token.onCancellationRequested(() => {
-    vscode.window.showWarningMessage('Repomix operation cancelled.');
-    throw new Error('Operation cancelled.');
-  });
-
+export async function runRepomix(uri: vscode.Uri): Promise<void> {
   const cwd = getCwd();
   const targetDir = uri.fsPath;
-
-  progress.report({
-    increment: 0,
-    message: `in /${path.basename(targetDir)}`,
-  });
 
   // Load config and write repomix command with corresponding flags
   const runnerConfig = readRunnerConfig();
@@ -35,18 +22,28 @@ export async function runRepomix( // TODO il faut passer en param le chemin du f
 
   const cmd = `npx -y repomix "${config.targetDir}" ${cliFlags}`;
 
+  logger.both.debug('config: \n', config);
+  logger.both.debug('cmd: \n', cmd);
+  logger.both.debug('cwd: \n', cwd);
+
   const execPromise = util.promisify(exec);
 
-  // Execute repomix
   try {
-    const { stderr } = await execPromise(cmd, { cwd: cwd });
+    const cmdPromise = execPromise(cmd, { cwd: cwd });
 
-    if (stderr) {
-      vscode.window.showErrorMessage(`Error: ${stderr}`);
-      throw new Error(stderr);
+    showTempNotification(`⚙️ Running Repomix in "${config.targetDirBasename}" ...`, {
+      promise: cmdPromise,
+    });
+
+    const { stderr, stdout } = await cmdPromise;
+
+    if (stdout) {
+      logger.both.info('stdout: \n', stdout);
     }
 
-    progress.report({ increment: 50, message: 'Repomix executed, processing output...' });
+    if (stderr) {
+      logger.both.error('stderr: \n', stderr);
+    }
 
     const tmpFilePath = path.join(
       os.tmpdir(),
@@ -55,14 +52,20 @@ export async function runRepomix( // TODO il faut passer en param le chemin du f
 
     await copyToClipboard(config.output.filePath, tmpFilePath);
 
-    progress.report({ increment: 100, message: 'Repomix output copied to clipboard ✅' });
+    showTempNotification(
+      `✅ Repomix successfully executed in "${config.targetDirBasename}",
+       details in output`,
+      {
+        duration: 5000,
+        cancellable: true,
+      }
+    );
 
     await cleanOutputFile(config.output.filePath, config.keepOutputFile);
 
     cleanupTempFile(tmpFilePath);
-
-    await setTimeout(3000); // keep the popup open for 3s
   } catch (error: any) {
+    logger.both.error(error);
     vscode.window.showErrorMessage(error.message);
     throw error;
   }
