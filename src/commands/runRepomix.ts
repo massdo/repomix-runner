@@ -4,19 +4,21 @@ import * as os from 'os';
 import * as util from 'util';
 import { logger } from '../shared/logger';
 import { exec } from 'child_process';
-import { mergeConfigs, readRunnerConfig, readBaseConfig, getCwd } from '../config';
+import { mergeConfigs, getCwd } from '../config';
 import { copyToClipboard, cleanOutputFile, cleanupTempFile } from '../features';
 import { generateCliFlags } from '../core/cli/generateCliFlags';
 import { showTempNotification } from '../shared/showTempNotification';
+import { readRepomixFileConfig } from '../config/configLoader';
+import { readRepomixRunnerVscodeConfig } from '../config/configLoader';
 
 export async function runRepomix(uri: vscode.Uri): Promise<void> {
   const cwd = getCwd();
   const targetDir = uri.fsPath;
 
   // Load config and write repomix command with corresponding flags
-  const runnerConfig = readRunnerConfig();
-  const baseConfig = await readBaseConfig(cwd);
-  const config = mergeConfigs(cwd, runnerConfig, baseConfig, targetDir);
+  const vscodeConfig = readRepomixRunnerVscodeConfig();
+  const configFile = await readRepomixFileConfig(cwd);
+  const config = mergeConfigs(cwd, configFile, vscodeConfig, targetDir);
 
   const cliFlags = generateCliFlags(config);
 
