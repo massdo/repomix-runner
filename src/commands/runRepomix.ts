@@ -64,9 +64,11 @@ export async function runRepomix(uri: vscode.Uri): Promise<void> {
       }
     );
 
-    await cleanOutputFile(config.output.filePath, config.keepOutputFile);
+    await cleanOutputFile(config.output.filePath, config.runner.keepOutputFile);
 
-    cleanupTempFile(tmpFilePath);
+    cleanupTempFile(tmpFilePath).catch(error => {
+      logger.both.error('Error cleaning up temp file:', error);
+    });
   } catch (error: any) {
     logger.both.error(error);
     vscode.window.showErrorMessage(error.message);

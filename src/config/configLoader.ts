@@ -73,7 +73,7 @@ export function mergeConfigs(
     output: {
       ...baseConfig.output,
       ...repomixMergedConfig.output,
-      filePath: configFromRepomixRunnerVscode.useTargetAsOutput
+      filePath: configFromRepomixRunnerVscode.runner.useTargetAsOutput
         ? path.resolve(targetDir, repomixMergedConfig.output.filePath || baseConfig.output.filePath)
         : path.resolve(cwd, repomixMergedConfig.output.filePath || baseConfig.output.filePath),
     },

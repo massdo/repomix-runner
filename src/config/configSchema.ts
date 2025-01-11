@@ -81,17 +81,21 @@ export const defaultRunnerCopyMode: Record<RunnerCopyMode, string> = {
 
 export const repomixRunnerConfigBaseSchema = z
   .object({
-    keepOutputFile: z.boolean().optional(),
-    copyMode: runnerCopyModeSchema.optional(),
-    useTargetAsOutput: z.boolean().optional(),
+    runner: z.object({
+      keepOutputFile: z.boolean(),
+      copyMode: runnerCopyModeSchema,
+      useTargetAsOutput: z.boolean(),
+    }),
   })
   .and(repomixConfigBaseSchema);
 
 export const repomixRunnerConfigDefaultSchema = z
   .object({
-    keepOutputFile: z.boolean().default(true),
-    copyMode: runnerCopyModeSchema.default('file'),
-    useTargetAsOutput: z.boolean().default(true),
+    runner: z.object({
+      keepOutputFile: z.boolean().default(true),
+      copyMode: runnerCopyModeSchema.default('file'),
+      useTargetAsOutput: z.boolean().default(true),
+    }),
   })
   .and(repomixConfigDefaultSchema);
 
@@ -110,4 +114,10 @@ export type RepomixRunnerConfigFile = z.infer<typeof repomixRunnerConfigBaseSche
 export type RepomixRunnerConfigDefault = z.infer<typeof repomixRunnerConfigDefaultSchema>;
 export type MergedConfig = z.infer<typeof mergedConfigSchema>;
 
-export const defaultConfig = repomixRunnerConfigDefaultSchema.parse({});
+export const defaultConfig = repomixRunnerConfigDefaultSchema.parse({
+  runner: {
+    keepOutputFile: true,
+    copyMode: 'file',
+    useTargetAsOutput: true,
+  },
+});
