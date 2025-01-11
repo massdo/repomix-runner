@@ -1,4 +1,4 @@
-import { MergedConfig } from '../../config/';
+import { MergedConfig } from '../../config/configSchema';
 
 export function generateCliFlags(config: MergedConfig): string {
   const flags: string[] = [];

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { runRepomix } from './commands';
+import { runRepomix } from './commands/runRepomix';
 import { logger } from './shared/logger';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -13,7 +13,7 @@ export function activate(context: vscode.ExtensionContext) {
       uri = workspaceFolders[0].uri;
     }
 
-    runRepomix(uri!);
+    runRepomix(uri);
   });
 
   context.subscriptions.push(disposable);
