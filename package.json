@@ -4,7 +4,7 @@
   "displayName": "Repomix Runner",
   "description": "Run Repomix anywhere in your AppTree. The output is copied to clipboard. No more output file to delete.",
   "repository": "https://github.com/MassDo/repomix-runner.git",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "engines": {
     "vscode": "^1.93.0"
   },
