@@ -18,11 +18,13 @@
       "title": "Repomix",
       "properties": {
         "repomix.runner.keepOutputFile": {
+          "order": 2,
           "type": "boolean",
           "default": true,
           "description": " 📌 \n Keep the output file after copying its content to clipboard"
         },
         "repomix.runner.copyMode": {
+          "order": 4,
           "type": "string",
           "enum": [
             "content",
@@ -32,16 +34,19 @@
           "description": "✍️ or 💾 \n Choose what to copy to clipboard: 'content' for text content, 'file' for the file itself"
         },
         "repomix.runner.useTargetAsOutput": {
+          "order": 3,
           "type": "boolean",
           "default": true,
           "description": "🎯 ➡️  🎯 \n Use the targetted folder as the output folder"
         },
         "repomix.output.filePath": {
+          "order": 0,
           "type": "string",
           "default": "repomix-output.txt",
           "description": "⚙️ ➡️ ❓\n Path to the output file"
         },
         "repomix.output.style": {
+          "order": 1,
           "type": "string",
           "enum": [
             "plain",
@@ -82,6 +87,7 @@
           "description": "🔢 \n Show line numbers in output"
         },
         "repomix.include": {
+          "order": 5,
           "type": "array",
           "items": {
             "type": "string"
@@ -100,6 +106,7 @@
           "description": "Use default ignore patterns"
         },
         "repomix.ignore.customPatterns": {
+          "order": 6,
           "type": "array",
           "items": {
             "type": "string"
@@ -118,7 +125,13 @@
       {
         "command": "repomixRunner.run",
         "title": "Run Repomix",
-        "description": "run repomix in the current folder and save the output to clipboard",
+        "description": "Run repomix",
+        "icon": "$(book)"
+      },
+      {
+        "command": "repomixRunner.openSettings",
+        "title": "Repomix Settings",
+        "description": "Open Repomix Runner settings",
         "icon": "$(book)"
       }
     ],
@@ -127,6 +140,10 @@
         {
           "command": "repomixRunner.run",
           "title": "Run Repomix"
+        },
+        {
+          "command": "repomixRunner.openSettings",
+          "title": "Repomix Settings"
         }
       ],
       "explorer/context": [

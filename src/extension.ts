@@ -1,22 +1,29 @@
 import * as vscode from 'vscode';
-import { runRepomix } from './commands';
+import { openSettings, runRepomix } from './commands';
 import { logger } from './shared/logger';
 
 export function activate(context: vscode.ExtensionContext) {
-  const disposable = vscode.commands.registerCommand('repomixRunner.run', (uri?: vscode.Uri) => {
-    if (!uri) {
-      const workspaceFolders = vscode.workspace.workspaceFolders;
-      if (!workspaceFolders || workspaceFolders.length === 0) {
-        vscode.window.showErrorMessage('No workspace folder found');
-        return;
+  const runRepomixCommand = vscode.commands.registerCommand(
+    'repomixRunner.run',
+    (uri?: vscode.Uri) => {
+      if (!uri) {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders || workspaceFolders.length === 0) {
+          vscode.window.showErrorMessage('No workspace folder found');
+          return;
+        }
+        uri = workspaceFolders[0].uri;
       }
-      uri = workspaceFolders[0].uri;
-    }
 
-    runRepomix(uri!);
+      runRepomix(uri!);
+    }
+  );
+
+  const openSettingsCommand = vscode.commands.registerCommand('repomixRunner.openSettings', () => {
+    openSettings();
   });
 
-  context.subscriptions.push(disposable);
+  context.subscriptions.push(runRepomixCommand, openSettingsCommand);
 }
 
 export function deactivate() {
