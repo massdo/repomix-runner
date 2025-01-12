@@ -155,33 +155,31 @@
     "commands": [
       {
         "command": "repomixRunner.run",
-        "title": "Run Repomix",
-        "description": "Run repomix",
-        "icon": "$(book)"
+        "title": "Repomix Run",
+        "description": "Run repomix on the root folder of your project",
+        "icon": "assets/repomix-logo.svg"
       },
       {
         "command": "repomixRunner.openSettings",
         "title": "Repomix Settings",
         "description": "Open Repomix Runner settings",
-        "icon": "$(book)"
+        "icon": "$(settings)"
       }
     ],
     "menus": {
       "view/title": [
         {
           "command": "repomixRunner.run",
-          "title": "Run Repomix"
-        },
-        {
-          "command": "repomixRunner.openSettings",
-          "title": "Repomix Settings"
+          "title": "Repomix Run",
+          "group": "navigation@1",
+          "when": "view =~ /explorer/"
         }
       ],
       "explorer/context": [
         {
           "command": "repomixRunner.run",
           "when": "explorerResourceIsFolder",
-          "group": "navigation"
+          "group": "navigation@1"
         }
       ]
     }
