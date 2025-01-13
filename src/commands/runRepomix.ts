@@ -1,9 +1,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as os from 'os';
-import * as util from 'util';
+import { execPromisify } from '../shared/execPromisify';
 import { logger } from '../shared/logger';
-import { exec } from 'child_process';
 import { mergeConfigs } from '../config/configLoader';
 import { getCwd } from '../config/getCwd';
 import { copyToClipboard } from '../core/files/copyToClipboard';
@@ -30,10 +29,8 @@ export async function runRepomix(targetDir: string): Promise<void> {
   logger.both.debug('cmd: \n', cmd);
   logger.both.debug('cwd: \n', cwd);
 
-  const execPromise = util.promisify(exec);
-
   try {
-    const cmdPromise = execPromise(cmd, { cwd: cwd });
+    const cmdPromise = execPromisify(cmd, { cwd: cwd });
 
     showTempNotification(`⚙️ Running Repomix in "${config.targetDirBasename}" ...`, {
       promise: cmdPromise,

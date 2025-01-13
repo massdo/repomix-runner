@@ -1,9 +1,6 @@
 import * as vscode from 'vscode';
-import { exec as execCallback } from 'child_process';
 import { copyFile, readFile } from 'fs/promises';
-import { promisify } from 'util';
-
-const exec = promisify(execCallback); // TODO mettre dans shared ?
+import { execPromisify } from '../../shared/execPromisify';
 
 export async function copyToClipboard(outputFileAbs: string, tmpFilePath: string) {
   try {
@@ -14,10 +11,12 @@ export async function copyToClipboard(outputFileAbs: string, tmpFilePath: string
   }
 
   const copyMode = vscode.workspace.getConfiguration('repomix.runner').get('copyMode');
+
   if (copyMode === 'file') {
     const macOsScript = `osascript -e 'tell application "Finder" to set the clipboard to (POSIX file "${tmpFilePath}")'`;
+
     try {
-      await exec(macOsScript);
+      await execPromisify(macOsScript);
     } catch (err: any) {
       vscode.window.showErrorMessage(`Error setting file to clipboard: ${err.message}`);
       throw err;
