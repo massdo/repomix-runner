@@ -2,21 +2,26 @@ import * as vscode from 'vscode';
 import { runRepomix } from './commands/runRepomix';
 import { openSettings } from './commands/openSettings';
 import { logger } from './shared/logger';
+import { getCwd } from './config/getCwd';
 
 export function activate(context: vscode.ExtensionContext) {
   const runRepomixCommand = vscode.commands.registerCommand(
     'repomixRunner.run',
     (uri?: vscode.Uri) => {
-      if (!uri) {
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (!workspaceFolders || workspaceFolders.length === 0) {
-          vscode.window.showErrorMessage('No workspace folder found');
-          return;
-        }
-        uri = workspaceFolders[0].uri;
+      let targetDir = uri?.fsPath;
+
+      if (!targetDir) {
+        targetDir = getCwd();
       }
 
-      runRepomix(uri!);
+      runRepomix(targetDir);
+    }
+  );
+
+  const openSettingsCommand = vscode.commands.registerCommand(
+    'repomixRunner.openSettingsCommand',
+    () => {
+      openSettings();
     }
   );
 

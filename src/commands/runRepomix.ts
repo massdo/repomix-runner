@@ -6,15 +6,16 @@ import { logger } from '../shared/logger';
 import { exec } from 'child_process';
 import { mergeConfigs } from '../config/configLoader';
 import { getCwd } from '../config/getCwd';
-import { copyToClipboard, cleanOutputFile, cleanupTempFile } from '../core/files';
+import { copyToClipboard } from '../core/files/copyToClipboard';
+import { cleanOutputFile } from '../core/files/cleanOutputFile';
+import { cleanupTempFile } from '../core/files/cleanTempFile';
 import { generateCliFlags } from '../core/cli/generateCliFlags';
 import { showTempNotification } from '../shared/showTempNotification';
 import { readRepomixFileConfig } from '../config/configLoader';
 import { readRepomixRunnerVscodeConfig } from '../config/configLoader';
 
-export async function runRepomix(uri: vscode.Uri): Promise<void> {
+export async function runRepomix(targetDir: string): Promise<void> {
   const cwd = getCwd();
-  const targetDir = uri.fsPath;
 
   // Load config and write repomix command with corresponding flags
   const vscodeConfig = readRepomixRunnerVscodeConfig();
@@ -59,7 +60,7 @@ export async function runRepomix(uri: vscode.Uri): Promise<void> {
       `✅ Repomix successfully executed in "${config.targetDirBasename}",
        details in output`,
       {
-        duration: 5000,
+        duration: 3000,
         cancellable: true,
       }
     );
