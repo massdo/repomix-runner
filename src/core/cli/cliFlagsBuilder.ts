@@ -1,6 +1,6 @@
 import { MergedConfig } from '../../config/configSchema';
 
-export function generateCliFlags(config: MergedConfig): string {
+export function cliFlagsBuilder(config: MergedConfig): string {
   const flags: string[] = [];
 
   // Output options

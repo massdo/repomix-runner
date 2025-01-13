@@ -8,7 +8,7 @@ import { getCwd } from '../config/getCwd';
 import { copyToClipboard } from '../core/files/copyToClipboard';
 import { cleanOutputFile } from '../core/files/cleanOutputFile';
 import { cleanupTempFile } from '../core/files/cleanTempFile';
-import { generateCliFlags } from '../core/cli/generateCliFlags';
+import { cliFlagsBuilder } from '../core/cli/cliFlagsBuilder';
 import { showTempNotification } from '../shared/showTempNotification';
 import { readRepomixFileConfig } from '../config/configLoader';
 import { readRepomixRunnerVscodeConfig } from '../config/configLoader';
@@ -21,7 +21,7 @@ export async function runRepomix(targetDir: string): Promise<void> {
   const configFile = await readRepomixFileConfig(cwd);
   const config = mergeConfigs(cwd, configFile, vscodeConfig, targetDir);
 
-  const cliFlags = generateCliFlags(config);
+  const cliFlags = cliFlagsBuilder(config);
 
   const cmd = `npx -y repomix "${config.targetDir}" ${cliFlags}`;
 
