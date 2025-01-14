@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { access, readFile } from 'fs/promises';
+import { readFile } from 'fs/promises';
 import {
   type RepomixConfigFile,
   type MergedConfig,
@@ -23,7 +23,7 @@ export async function readRepomixFileConfig(cwd: string): Promise<RepomixConfigF
   const configPath = path.join(cwd, 'repomix.config.json'); // TODO support --config flag
 
   try {
-    await access(configPath);
+    await readFile(configPath, { encoding: 'utf8' });
   } catch (error) {
     logger.both.debug('repomix.config.json file does not exist');
     return;

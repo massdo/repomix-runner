@@ -195,6 +195,7 @@
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
+    "@types/sinon": "^17.0.3",
     "@types/vscode": "^1.93.0",
     "@typescript-eslint/eslint-plugin": "^8.17.0",
     "@typescript-eslint/parser": "^8.17.0",
@@ -202,6 +203,7 @@
     "@vscode/test-electron": "^2.4.1",
     "eslint": "^9.16.0",
     "globby": "^14.0.2",
+    "sinon": "^19.0.2",
     "typescript": "^5.7.2"
   },
   "dependencies": {
