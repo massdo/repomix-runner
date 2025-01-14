@@ -1,5 +1,10 @@
 import * as vscode from 'vscode';
 
+/**
+ * Returns the absolute path of the root workspace folder.
+ * @returns {string} The absolute path of the root workspace folder.
+ * @throws Will throw an error if no root workspace folder is found.
+ */
 export function getCwd(): string {
   const folders = vscode.workspace.workspaceFolders;
 
