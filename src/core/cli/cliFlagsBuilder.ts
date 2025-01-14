@@ -38,6 +38,13 @@ export function cliFlagsBuilder(config: MergedConfig): string {
   }
 
   // Ignore patterns
+  // HELP  no flag yet for this config in repomix ?
+  // if (!config.ignore.useGitignore) {
+  //   flags.push('--no-gitignore');
+  // }
+  // if (!config.ignore.useDefaultPatterns) {
+  //   flags.push('--no-default-ignore');
+  // }
   if (config.ignore.customPatterns.length > 0) {
     flags.push(`--ignore "${config.ignore.customPatterns.join(',')}"`);
   }
