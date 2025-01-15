@@ -18,7 +18,6 @@ suite('Extension Test Suite', () => {
     if (workspaceFolders) {
       const workspaceFolder = workspaceFolders[0];
       const workspacePath = workspaceFolder.uri.fsPath;
-      console.log('Workspace folder found:', workspacePath);
       assert.ok(
         workspacePath.endsWith('src/test/test-workspace/root'),
         `Test Workspace path "${workspacePath}" does not end with "src/test/test-workspace/root"`

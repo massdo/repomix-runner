@@ -53,7 +53,6 @@ suite('configLoader', () => {
           packageJsonKeys.add(key.replace('repomix.', ''));
         });
       });
-      console.log('Package.json keys:', [...packageJsonKeys]);
 
       // Step 2: Retrieve keys from the schema defined in Zod
       const schemaKeys = new Set<string>();
@@ -159,11 +158,6 @@ suite('configLoader', () => {
 
         sinon.assert.calledOnce(loggerSpy);
         sinon.assert.calledWith(loggerSpy, 'repomix.config.json file does not exist');
-
-        console.log(
-          'Spy calls:',
-          loggerSpy.getCalls().map(call => call.args)
-        );
       } finally {
         loggerSpy.restore();
       }
