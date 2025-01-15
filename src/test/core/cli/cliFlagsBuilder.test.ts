@@ -108,7 +108,25 @@ suite('CliFlagsBuilder', () => {
     assert.ok(flags.includes('--output-show-line-numbers'));
   });
 
-  //TODO --copy
+  test('should add "--copy" flag when output.copyToClipboard is true and runner.copyMode is "content"', () => {
+    const config: MergedConfig = {
+      ...baseConfig,
+      output: { ...baseConfig.output, copyToClipboard: true },
+      runner: { ...baseConfig.runner, copyMode: 'content' },
+    };
+    const flags = cliFlagsBuilder(config);
+    assert.ok(flags.includes('--copy'));
+  });
+
+  test('should not add "--copy" flag when output.copyToClipboard is true and runner.copyMode is "file"', () => {
+    const config: MergedConfig = {
+      ...baseConfig,
+      output: { ...baseConfig.output, copyToClipboard: true },
+      runner: { ...baseConfig.runner, copyMode: 'file' },
+    };
+    const flags = cliFlagsBuilder(config);
+    assert.ok(!flags.includes('--copy'));
+  });
 
   //TODO --remote
 

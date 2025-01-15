@@ -51,7 +51,9 @@ export async function runRepomix(targetDir: string): Promise<void> {
       'repomix_' + config.targetPathRelative.split('/').join('_')
     );
 
-    await copyToClipboard(config.output.filePath, tmpFilePath);
+    if (config.output.copyToClipboard && config.runner.copyMode === 'file') {
+      await copyToClipboard(config.output.filePath, tmpFilePath);
+    }
 
     showTempNotification(
       `✅ Repomix successfully executed in "${config.targetDirBasename}",

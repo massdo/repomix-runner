@@ -86,6 +86,11 @@
             "default": false,
             "description": "🧹 \n Remove empty lines from code"
           },
+          "repomix.output.copyToClipboard": {
+            "type": "boolean",
+            "default": false,
+            "description": "🔗 \n Copy output to clipboard"
+          },
           "repomix.output.topFilesLength": {
             "type": "number",
             "default": 5,

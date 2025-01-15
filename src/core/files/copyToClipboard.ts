@@ -1,8 +1,23 @@
 import * as vscode from 'vscode';
-import { copyFile, readFile } from 'fs/promises';
 import { execPromisify } from '../../shared/execPromisify';
+import { copyFile } from 'fs/promises';
 
-export async function copyToClipboard(outputFileAbs: string, tmpFilePath: string) {
+type OperatingSystem = 'darwin' | 'win32' | 'linux';
+
+const CLIPBOARD_COMMANDS = {
+  //TEST  TODO
+  darwin: (path: string) =>
+    `osascript -e 'tell application "Finder" to set the clipboard to (POSIX file "${path}")'`,
+  win32: (path: string) => `clip < "${path}"`,
+  linux: (path: string) => `xclip -selection clipboard -t text/uri-list "${path}"`,
+} as const;
+
+export async function copyToClipboard(
+  outputFileAbs: string,
+  tmpFilePath: string,
+  os: OperatingSystem = process.platform as OperatingSystem
+) {
+  // First copy the file to the tmp folder to keep the file if config.runner.keepOutputFile is false
   try {
     await copyFile(outputFileAbs, tmpFilePath);
   } catch (copyError) {
@@ -10,19 +25,15 @@ export async function copyToClipboard(outputFileAbs: string, tmpFilePath: string
     throw copyError;
   }
 
-  const copyMode = vscode.workspace.getConfiguration('repomix.runner').get('copyMode');
+  if (!(os in CLIPBOARD_COMMANDS)) {
+    throw new Error(`Unsupported operating system: ${os}`);
+  }
 
-  if (copyMode === 'file') {
-    const macOsScript = `osascript -e 'tell application "Finder" to set the clipboard to (POSIX file "${tmpFilePath}")'`;
-
-    try {
-      await execPromisify(macOsScript);
-    } catch (err: any) {
-      vscode.window.showErrorMessage(`Error setting file to clipboard: ${err.message}`);
-      throw err;
-    }
-  } else {
-    const fileContent = await readFile(tmpFilePath, 'utf8');
-    await vscode.env.clipboard.writeText(fileContent);
+  try {
+    const command = CLIPBOARD_COMMANDS[os](tmpFilePath);
+    await execPromisify(command);
+  } catch (err: any) {
+    vscode.window.showErrorMessage(`Error setting file to clipboard: ${err.message}`);
+    throw err;
   }
 }

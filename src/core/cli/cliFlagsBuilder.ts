@@ -1,58 +1,83 @@
 import { MergedConfig } from '../../config/configSchema';
 
-export function cliFlagsBuilder(config: MergedConfig): string {
-  const flags: string[] = [];
+export const cliFlags = {
+  // keep this up to date with repomix official cli flags
+  // if a flag is not supported it will fail the tests
+  output: {
+    filePath: '--output',
+    style: '--style',
+    headerText: null, // MEMO no flag yet for this config in repomix ?
+    instructionFilePath: null, // MEMO no flag yet for this config in repomix ?
+    fileSummary: '--no-file-summary',
+    directoryStructure: '--no-directory-structure',
+    removeComments: '--remove-comments',
+    removeEmptyLines: '--remove-empty-lines',
+    showLineNumbers: '--output-show-line-numbers',
+    copyToClipboard: '--copy',
+    topFilesLength: '--top-files-len',
+    includeEmptyDirectories: null, // MEMO no flag yet for this config in repomix ?
+  },
+  include: '--include',
+  ignore: {
+    useGitignore: null, // MEMO no flag yet for this config in repomix ?
+    useDefaultPatterns: null, // MEMO no flag yet for this config in repomix ?
+    customPatterns: '--ignore',
+  },
+  security: {
+    enableSecurityCheck: '--no-security-check',
+  },
+  tokenCount: {
+    encoding: null, // MEMO no flag yet for this config in repomix ?
+  },
+} as const;
 
-  // Output options
+export function cliFlagsBuilder(config: MergedConfig, flags = cliFlags): string {
+  const outputFlags: string[] = [];
+
+  // REFACTOR si une clée de config n'est pas dans le la flagsmapping alors on le log en disant la config n'est pas supportée
+
+  // Output
   if (config.output.filePath) {
-    flags.push(`--output "${config.output.filePath}"`);
+    outputFlags.push(`${flags.output.filePath} "${config.output.filePath}"`);
   }
   if (config.output.style) {
-    flags.push(`--style ${config.output.style}`);
+    outputFlags.push(`${flags.output.style} ${config.output.style}`);
   }
   if (!config.output.fileSummary) {
-    flags.push('--no-file-summary');
+    outputFlags.push(flags.output.fileSummary);
   }
   if (!config.output.directoryStructure) {
-    flags.push('--no-directory-structure');
+    outputFlags.push(flags.output.directoryStructure);
   }
   if (config.output.removeComments) {
-    flags.push('--remove-comments');
+    outputFlags.push(flags.output.removeComments);
   }
   if (config.output.removeEmptyLines) {
-    flags.push('--remove-empty-lines');
+    outputFlags.push(flags.output.removeEmptyLines);
   }
   if (config.output.showLineNumbers) {
-    flags.push('--output-show-line-numbers');
+    outputFlags.push(flags.output.showLineNumbers);
   }
-  // if (config.output.copyToClipboard) { // conflit avec le clipboard de lextension
-  //   flags.push('--copy');
-  // }
+  if (config.output.copyToClipboard && config.runner.copyMode === 'content') {
+    // if copyMode is file then we handle the copy in copyToClipboard function
+    // HELP -> ask to repomix to support copyMode as a new feature
+    outputFlags.push(flags.output.copyToClipboard);
+  }
   if (config.output.topFilesLength !== 5) {
-    flags.push(`--top-files-len ${config.output.topFilesLength}`);
+    outputFlags.push(`${flags.output.topFilesLength} ${config.output.topFilesLength}`);
   }
-
-  // Include patterns
+  // Include
   if (config.include.length > 0) {
-    flags.push(`--include "${config.include.join(',')}"`);
+    outputFlags.push(`${flags.include} "${config.include.join(',')}"`);
   }
-
-  // Ignore patterns
-  // HELP  no flag yet for this config in repomix ?
-  // if (!config.ignore.useGitignore) {
-  //   flags.push('--no-gitignore');
-  // }
-  // if (!config.ignore.useDefaultPatterns) {
-  //   flags.push('--no-default-ignore');
-  // }
+  // Ignore
   if (config.ignore.customPatterns.length > 0) {
-    flags.push(`--ignore "${config.ignore.customPatterns.join(',')}"`);
+    outputFlags.push(`${flags.ignore.customPatterns} "${config.ignore.customPatterns.join(',')}"`);
   }
-
-  // Security check
+  // Security
   if (!config.security.enableSecurityCheck) {
-    flags.push('--no-security-check');
+    outputFlags.push(flags.security.enableSecurityCheck);
   }
 
-  return flags.join(' ');
+  return outputFlags.join(' ');
 }
