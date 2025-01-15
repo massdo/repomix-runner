@@ -5,6 +5,7 @@ import { logger } from './shared/logger';
 import { getCwd } from './config/getCwd';
 
 export function activate(context: vscode.ExtensionContext) {
+  logger.setVerbose(true);
   const runRepomixCommand = vscode.commands.registerCommand(
     'repomixRunner.run',
     (uri?: vscode.Uri) => {
@@ -18,12 +19,9 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  const openSettingsCommand = vscode.commands.registerCommand(
-    'repomixRunner.openSettingsCommand',
-    () => {
-      openSettings();
-    }
-  );
+  const openSettingsCommand = vscode.commands.registerCommand('repomixRunner.openSettings', () => {
+    openSettings();
+  });
 
   context.subscriptions.push(runRepomixCommand, openSettingsCommand);
 }
