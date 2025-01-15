@@ -62,7 +62,9 @@ export async function runRepomix(targetDir: string): Promise<void> {
       }
     );
 
-    await cleanOutputFile(config.output.filePath, config.runner.keepOutputFile);
+    if (!config.runner.keepOutputFile) {
+      await cleanOutputFile(config.output.filePath);
+    }
 
     cleanupTempFile(tmpFilePath).catch(error => {
       logger.both.error('Error cleaning up temp file:', error);
