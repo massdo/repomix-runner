@@ -5,7 +5,7 @@ import { copyFile } from 'fs/promises';
 type OperatingSystem = 'darwin' | 'win32' | 'linux';
 
 const CLIPBOARD_COMMANDS = {
-  //TEST  TODO
+  //TEST -> integration todo
   darwin: (path: string) =>
     `osascript -e 'tell application "Finder" to set the clipboard to (POSIX file "${path}")'`,
   win32: (path: string) => `clip < "${path}"`,
@@ -15,11 +15,15 @@ const CLIPBOARD_COMMANDS = {
 export async function copyToClipboard(
   outputFileAbs: string,
   tmpFilePath: string,
-  os: OperatingSystem = process.platform as OperatingSystem
+  os: OperatingSystem = process.platform as OperatingSystem,
+  dep: { copyFile: typeof copyFile; execPromisify: typeof execPromisify } = {
+    copyFile,
+    execPromisify,
+  }
 ) {
   // First copy the file to the tmp folder to keep the file if config.runner.keepOutputFile is false
   try {
-    await copyFile(outputFileAbs, tmpFilePath);
+    await dep.copyFile(outputFileAbs, tmpFilePath);
   } catch (copyError) {
     vscode.window.showErrorMessage(`Could not copy output file to temp folder: ${copyError}`);
     throw copyError;
@@ -31,7 +35,7 @@ export async function copyToClipboard(
 
   try {
     const command = CLIPBOARD_COMMANDS[os](tmpFilePath);
-    await execPromisify(command);
+    await dep.execPromisify(command);
   } catch (err: any) {
     vscode.window.showErrorMessage(`Error setting file to clipboard: ${err.message}`);
     throw err;
