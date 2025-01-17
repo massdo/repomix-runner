@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/massdo/repomix-runner/main/assets/repomix-logo.png" alt="Repomix" width="200" height="auto" />
+  <img src="assets/repomix-logo.png" alt="Repomix" width="200" height="auto" />
 </div>
 
 # Repomix Runner
@@ -19,17 +19,16 @@ Repomix Runner is a VS Code extension that runs the [Repomix](https://github.com
 
 ## 📖 Usage
 
-<div align="left">
-  <img src="https://raw.githubusercontent.com/massdo/repomix-runner/main/assets/demo.png" alt="Repomix" width="auto" height="400" />
-</div>
-
-To pack the whole project, click on the square icon <img src="https://raw.githubusercontent.com/massdo/repomix-runner/main/assets/repomix-logo.png" alt="Repomix" width="20" height="auto" /> or run the `Repomix Run` command.
+To pack the whole project, click on the square icon <img src="assets/repomix-logo.png" alt="Repomix" width="20" height="auto" /> or run the `Repomix Run` command.
 
 To pack a specific folder:
 
 1. 📁 Right-click on any folder in VS Code's explorer
 2. Select "Run Repomix" from the context menu
 3. if you have selected "target as ouput" setting the output file will be in the targetted folder.
+<div align="left">
+  <img src="assets/demo.png" alt="Repomix" width="auto" height="400" />
+</div>
 
 ## ⚙️ Commands
 
@@ -52,31 +51,31 @@ We added 3 new Runner settings on top of repomix settings (output, include, igno
 #### Runner settings
 
 <div align="left">
-  <img src="https://raw.githubusercontent.com/massdo/repomix-runner/main/assets/runner-settings.png" alt="Repomix" width="800" height="auto" />
+  <img src="assets/runner-settings.png" alt="Repomix" width="800" height="auto" />
 </div>
 
 #### Ouput settings
 
 <div align="left">
-  <img src="https://raw.githubusercontent.com/massdo/repomix-runner/main/assets/output-settings.png" alt="Repomix" width="800" height="auto"/>
+  <img src="assets/output-settings.png" alt="Repomix" width="800" height="auto"/>
 </div>
 
 #### Include settings
 
 <div align="left">
-  <img src="https://raw.githubusercontent.com/massdo/repomix-runner/main/assets/include-settings.png" alt="Repomix" width="800" height="auto" />
+  <img src="assets/include-settings.png" alt="Repomix" width="800" height="auto" />
 </div>
 
 #### Ignore settings
 
 <div align="left">
-  <img src="https://raw.githubusercontent.com/massdo/repomix-runner/main/assets/ignore-settings.png" alt="Repomix" width="800" height="auto" />
+  <img src="assets/ignore-settings.png" alt="Repomix" width="800" height="auto" />
 </div>
 
 #### Security settings
 
 <div align="left">
-  <img src="https://raw.githubusercontent.com/massdo/repomix-runner/main/assets/security-settings.png" alt="Repomix" width="800" height="auto" />
+  <img src="assets/security-settings.png" alt="Repomix" width="800" height="auto" />
 </div>
 
 - you can also add a repomix.config.json file in your project root folder, it will **_override_** the settings in the extension. Except for the runner settings.
