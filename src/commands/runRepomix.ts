@@ -1,27 +1,48 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as os from 'os';
 import { execPromisify } from '../shared/execPromisify';
 import { logger } from '../shared/logger';
 import { mergeConfigs } from '../config/configLoader';
 import { getCwd } from '../config/getCwd';
 import { copyToClipboard } from '../core/files/copyToClipboard';
 import { cleanOutputFile } from '../core/files/cleanOutputFile';
-import { cleanupTempFile } from '../core/files/cleanTempFile';
 import { cliFlagsBuilder } from '../core/cli/cliFlagsBuilder';
 import { showTempNotification } from '../shared/showTempNotification';
 import { readRepomixFileConfig } from '../config/configLoader';
 import { readRepomixRunnerVscodeConfig } from '../config/configLoader';
+import { tempDirManager } from '../core/files/tempDirManager';
 
-export async function runRepomix(targetDir: string): Promise<void> {
-  const cwd = getCwd();
+export async function runRepomix(
+  targetDir: string,
+  tempDir: string,
+  deps: {
+    getCwd: typeof getCwd;
+    copyToClipboard: typeof copyToClipboard;
+    cleanOutputFile: typeof cleanOutputFile;
+    readRepomixRunnerVscodeConfig: typeof readRepomixRunnerVscodeConfig;
+    readRepomixFileConfig: typeof readRepomixFileConfig;
+    mergeConfigs: typeof mergeConfigs;
+    cliFlagsBuilder: typeof cliFlagsBuilder;
+    execPromisify: typeof execPromisify;
+  } = {
+    getCwd,
+    copyToClipboard,
+    cleanOutputFile,
+    readRepomixRunnerVscodeConfig,
+    readRepomixFileConfig,
+    mergeConfigs,
+    cliFlagsBuilder,
+    execPromisify,
+  }
+): Promise<void> {
+  const cwd = deps.getCwd();
 
   // Load config and write repomix command with corresponding flags
-  const vscodeConfig = readRepomixRunnerVscodeConfig();
-  const configFile = await readRepomixFileConfig(cwd);
-  const config = mergeConfigs(cwd, configFile, vscodeConfig, targetDir);
+  const vscodeConfig = deps.readRepomixRunnerVscodeConfig();
+  const configFile = await deps.readRepomixFileConfig(cwd);
+  const config = deps.mergeConfigs(cwd, configFile, vscodeConfig, targetDir);
 
-  const cliFlags = cliFlagsBuilder(config);
+  const cliFlags = deps.cliFlagsBuilder(config);
 
   const cmd = `npx -y repomix "${config.targetDir}" ${cliFlags}`;
 
@@ -30,7 +51,7 @@ export async function runRepomix(targetDir: string): Promise<void> {
   logger.both.debug('cwd: \n', cwd);
 
   try {
-    const cmdPromise = execPromisify(cmd, { cwd: cwd });
+    const cmdPromise = deps.execPromisify(cmd, { cwd: cwd });
 
     showTempNotification(`⚙️ Running Repomix in "${config.targetDirBasename}" ...`, {
       promise: cmdPromise,
@@ -46,13 +67,10 @@ export async function runRepomix(targetDir: string): Promise<void> {
       logger.both.error('stderr: \n', stderr);
     }
 
-    const tmpFilePath = path.join(
-      os.tmpdir(),
-      'repomix_' + config.targetPathRelative.split('/').join('_')
-    );
+    const tmpFilePath = path.join(tempDir, config.targetPathRelative.split('/').join('_'));
 
     if (config.output.copyToClipboard && config.runner.copyMode === 'file') {
-      await copyToClipboard(config.output.filePath, tmpFilePath);
+      await deps.copyToClipboard(config.output.filePath, tmpFilePath);
     }
 
     showTempNotification(
@@ -65,10 +83,10 @@ export async function runRepomix(targetDir: string): Promise<void> {
     );
 
     if (!config.runner.keepOutputFile) {
-      await cleanOutputFile(config.output.filePath);
+      await deps.cleanOutputFile(config.output.filePath);
     }
 
-    cleanupTempFile(tmpFilePath).catch(error => {
+    tempDirManager.cleanupFile(tmpFilePath).catch(error => {
       logger.both.error('Error cleaning up temp file:', error);
     });
   } catch (error: any) {

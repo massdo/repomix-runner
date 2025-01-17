@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import { runRepomix } from './commands/runRepomix';
 import { openSettings } from './commands/openSettings';
-import { logger } from './shared/logger';
 import { getCwd } from './config/getCwd';
+import { tempDirManager } from './core/files/tempDirManager';
 
 export function activate(context: vscode.ExtensionContext) {
   const runRepomixCommand = vscode.commands.registerCommand(
@@ -14,7 +14,7 @@ export function activate(context: vscode.ExtensionContext) {
         targetDir = getCwd();
       }
 
-      runRepomix(targetDir);
+      runRepomix(targetDir, tempDirManager.getTempDir());
     }
   );
 
@@ -26,6 +26,5 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
-  logger.both.debug('deactivate repomix runner');
-  // TODO add a cleanup function that delete the temp dir
+  tempDirManager.cleanup();
 }

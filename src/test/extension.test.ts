@@ -2,14 +2,13 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 
 suite('Extension Test Suite', () => {
-  vscode.window.showInformationMessage('Start all tests.');
-
   test('Extension should be activated', async () => {
     const extensionId = 'DorianMassoulier.repomix-runner';
     const extension = vscode.extensions.getExtension(extensionId);
     assert.ok(extension, 'Extension is not found');
+    assert.ok(!extension.isActive, 'Extension should be inactive');
     await extension.activate();
-    assert.ok(extension.isActive, 'Extension is not active');
+    assert.ok(extension.isActive, 'Extension should be active');
   });
 
   test('Workspace folder should be found and match expected path', () => {
