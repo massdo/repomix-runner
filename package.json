@@ -2,6 +2,7 @@
   "publisher": "DorianMassoulier",
   "name": "repomix-runner",
   "displayName": "Repomix Runner",
+  "icon": "assets/repomix-logo.png",
   "description": "Run Repomix anywhere in your AppTree. The output is copied to clipboard. No more output file to delete.",
   "repository": "https://github.com/MassDo/repomix-runner.git",
   "version": "0.0.10",
