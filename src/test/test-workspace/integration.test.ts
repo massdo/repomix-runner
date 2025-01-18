@@ -2,7 +2,6 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { readFile } from 'node:fs/promises';
 import { deleteFiles, waitForFile } from '../utilsTest.js';
 import { execPromisify } from '../../shared/execPromisify.js';
 
@@ -50,6 +49,7 @@ suite('Extension Test Suite', () => {
 
   test('run repomixRunner.run at root/foo/bar/baz and verify file creation for this directory', async function () {
     this.timeout(10000);
+    // REFACTOR flaky test ?
     await compareGeneratedFiles('foo/bar/baz/');
   });
 

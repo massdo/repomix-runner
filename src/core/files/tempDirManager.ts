@@ -4,6 +4,7 @@ import path from 'node:path';
 import { logger } from '../../shared/logger';
 import { setTimeout } from 'node:timers/promises';
 import { access, unlink } from 'node:fs/promises';
+import { showTempNotification } from '../../shared/showTempNotification';
 
 export class TempDirManager {
   private defaultTempDirName: string = 'repomix_runner';
@@ -13,10 +14,17 @@ export class TempDirManager {
     this.createTempDir(name);
   }
 
-  private createTempDir(name: string = this.defaultTempDirName): string {
+  public createTempDir(name: string): string {
+    logger.both.debug(`Creating temp directory IN CLASS ->  ${name}`);
     this.tempDir = path.join(os.tmpdir(), name);
     if (!fs.existsSync(this.tempDir)) {
-      fs.mkdirSync(this.tempDir);
+      try {
+        fs.mkdirSync(this.tempDir);
+      } catch (error) {
+        logger.both.error(`Failed to create temp directory ${this.tempDir}: ${error}`);
+        showTempNotification(`Failed to create temp directory ${this.tempDir}: ${error}`);
+        throw new Error(`Failed to create temp directory ${this.tempDir}: ${error}`);
+      }
     }
     logger.both.debug(`Created temp directory : ${this.tempDir}`);
     return this.tempDir;
@@ -28,7 +36,7 @@ export class TempDirManager {
 
   public cleanup() {
     if (this.tempDir && fs.existsSync(this.tempDir)) {
-      fs.rmdirSync(this.tempDir, { recursive: true });
+      fs.rmSync(this.tempDir, { recursive: true });
       logger.output.debug(`Cleaned up temp directory: ${this.tempDir}`); // BUG logger not working
     }
   }
