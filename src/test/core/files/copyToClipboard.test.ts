@@ -39,7 +39,7 @@ suite('copyToClipboard', () => {
     },
     {
       os: 'linux',
-      expectedCommand: `xclip -selection clipboard -t text/uri-list "/path/to/tmp/output.txt"`,
+      expectedCommand: `echo "file:///path/to/tmp/output.txt" | xclip -selection clipboard -t text/uri-list`,
     },
   ];
 

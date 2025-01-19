@@ -20,7 +20,7 @@ function toUri(path: string): string {
 
 const CLIPBOARD_COMMANDS = {
   darwin: (path: string) =>
-    `osascript -e 'tell application "Finder" to set the clipboard to (POSIX file "${path}")'`, 
+    `osascript -e 'tell application "Finder" to set the clipboard to (POSIX file "${path}")'`,
   win32: (path: string) => `clip < "${path}"`,
   linux: (path: string) => `echo "${toUri(path)}" | xclip -selection clipboard -t text/uri-list`,
 } as const;
@@ -41,7 +41,6 @@ export async function copyToClipboard(
     createTempDir: tempDirManager.createTempDir,
   }
 ) {
-
   if (os === 'linux') {
     const isXclipInstalled = await checkXclipInstalled(dep);
     if (!isXclipInstalled) {
