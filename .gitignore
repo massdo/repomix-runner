@@ -5,6 +5,6 @@ node_modules
 *.vsix
 .prettierrc
 features.txt
-repomix.config.json
 prompts.txt
 repomix-logo.svg
+.repomixignore
