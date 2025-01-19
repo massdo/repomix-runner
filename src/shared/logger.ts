@@ -12,6 +12,10 @@ class Logger {
     this.outputChannel = vscode.window.createOutputChannel('Repomix runner');
   }
 
+  show() {
+    this.outputChannel?.show();
+  }
+
   console = this.createLogMethods('console');
   output = this.createLogMethods('output');
   both = this.createLogMethods('both');

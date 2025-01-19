@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { runRepomix } from './commands/runRepomix';
 import { openSettings } from './commands/openSettings';
+import { openOutput } from './commands/openOutput';
 import { getCwd } from './config/getCwd';
 import { tempDirManager } from './core/files/tempDirManager';
 
@@ -22,7 +23,11 @@ export function activate(context: vscode.ExtensionContext) {
     openSettings();
   });
 
-  context.subscriptions.push(runRepomixCommand, openSettingsCommand);
+  const openOutputCommand = vscode.commands.registerCommand('repomixRunner.openOutput', () => {
+    openOutput();
+  });
+
+  context.subscriptions.push(runRepomixCommand, openSettingsCommand, openOutputCommand);
 }
 
 export function deactivate() {

@@ -173,6 +173,12 @@
         "title": "Repomix Settings",
         "description": "Open Repomix Runner settings",
         "icon": "$(settings)"
+      },
+      {
+        "command": "repomixRunner.openOutput",
+        "title": "Repomix Output",
+        "description": "Open Repomix Runner output channel",
+        "icon": "$(output)"
       }
     ],
     "menus": {
