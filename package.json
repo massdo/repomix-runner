@@ -37,7 +37,7 @@
               "content",
               "file"
             ],
-            "default": "file",
+            "default": "content",
             "description": "✍️ or 💾 \n Choose what to copy to clipboard: 'content' for text content, 'file' for the file itself"
           },
           "repomix.runner.useTargetAsOutput": {
@@ -92,7 +92,7 @@
           },
           "repomix.output.copyToClipboard": {
             "type": "boolean",
-            "default": false,
+            "default": true,
             "description": "🔗 \n Copy output to clipboard"
           },
           "repomix.output.topFilesLength": {

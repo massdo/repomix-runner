@@ -85,10 +85,11 @@ We added 3 new Runner settings on top of repomix settings (output, include, igno
 - VS Code 1.93.0 or higher
 - Node.js and npm installed (for `npx`)
 - macOS for file copy mode
+- xclip installed for file copy mode on linux
 
 ## ⚠️ Known Issues
 
-- File copy mode is only available on macOS
+- File copy mode is only available on macOS and linux (you need to install xclip for file copy mode on linux)
 - Need to support the last repomix settings (tokenCount, headerText,..)
 
 ## 🤝 Contributing
