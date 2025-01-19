@@ -5,12 +5,15 @@ import { tempDirManager } from './tempDirManager';
 
 type OperatingSystem = 'darwin' | 'win32' | 'linux';
 
+function toUri(path: string): string {
+  return `file://${path.replace(/ /g, '%20')}`;
+}
+
 const CLIPBOARD_COMMANDS = {
-  //TEST -> integration todo
   darwin: (path: string) =>
-    `osascript -e 'tell application "Finder" to set the clipboard to (POSIX file "${path}")'`,
-  win32: (path: string) => `clip < "${path}"`,
-  linux: (path: string) => `xclip -selection clipboard -t text/uri-list "${path}"`, // BUG ne marche pas sur linux
+    `osascript -e 'tell application "Finder" to set the clipboard to (POSIX file "${path}")'`, // valide pour macOS
+  win32: (path: string) => `clip < "${path}"`, // à tester sous Windows
+  linux: (path: string) => `echo "${toUri(path)}" | xclip -selection clipboard -t text/uri-list`, // utilise echo pour compatibilité Linux
 } as const;
 
 export async function copyToClipboard(
