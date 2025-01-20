@@ -44,7 +44,7 @@ export async function runRepomix(
 
   const cliFlags = deps.cliFlagsBuilder(config);
 
-  const cmd = `npx -y repomix "${config.targetDir}" ${cliFlags}`;
+  const cmd = `npx -y repomix@latest "${config.targetDir}" ${cliFlags}`;
 
   logger.both.debug('config: \n', config);
   logger.both.debug('cmd: \n', cmd);

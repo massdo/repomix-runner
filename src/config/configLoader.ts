@@ -31,7 +31,8 @@ export async function readRepomixFileConfig(cwd: string): Promise<RepomixConfigF
 
   try {
     const data = await readFile(configPath, 'utf8');
-    const config = JSON.parse(data);
+    const { default: stripJsonComments } = await import('strip-json-comments');
+    const config = JSON.parse(stripJsonComments(data));
     return repomixConfigBaseSchema.parse(config);
   } catch (error) {
     logger.both.error('Invalid repomix.config.json format');

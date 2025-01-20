@@ -14,6 +14,7 @@ import {
 } from '../../config/configSchema';
 import { getCwd } from '../../config/getCwd';
 import { logger } from '../../shared/logger';
+import * as fs from 'fs';
 
 suite('configLoader', () => {
   let testCwd: string;
@@ -181,6 +182,33 @@ suite('configLoader', () => {
         require('fs/promises').readFile = originalReadFile;
       }
     });
+
+    test('should not throw error when repomix.config.json has comments', async () => {
+      const configWithComments = `{
+        // Output configuration
+        "output": {
+          "filePath": "test-output.txt"
+        },
+        /* Ignore configuration */
+        "ignore": {
+          "useGitignore": true // Use .gitignore file
+        }
+      }`;
+
+      const readFileStub = sinon.stub(fs.promises, 'readFile');
+      readFileStub.onFirstCall().resolves(configWithComments);
+      readFileStub.onSecondCall().resolves(configWithComments);
+
+      try {
+        const result = await readRepomixFileConfig(testCwd);
+        assert.deepStrictEqual(result, {
+          output: { filePath: 'test-output.txt' },
+          ignore: { useGitignore: true },
+        });
+      } finally {
+        readFileStub.restore();
+      }
+    });
   });
 
   suite('mergeConfigs', () => {
@@ -290,6 +318,11 @@ suite('configLoader', () => {
 
       const merged = mergeConfigs(testCwd, fileConfig, vscodeConfig, targetDir);
       assert.ok(path.relative(testCwd, merged.output.filePath) === 'custom.txt');
+    });
+
+    test('should not throw error when repomix.config.json has comments', async () => {
+      const config = await readRepomixFileConfig(testCwd);
+      assert.ok(config);
     });
   });
 });
