@@ -36,6 +36,7 @@ Open the palette with `Cmd+Shift+P` or `Ctrl+Shift+P` then:
 
 - `Repomix Run` to run repomix on the root folder of your project
 - `Repomix Settings` for a quick access to the settings
+- `Repomix Output` to open the repomix output channel
 
 ## 🚀 Installation
 
