@@ -6,12 +6,26 @@ import {
   type MergedConfig,
   repomixConfigBaseSchema,
   defaultConfig,
-  defaultFilePathMap,
   RepomixRunnerConfigDefault,
   repomixRunnerConfigDefaultSchema,
   mergedConfigSchema,
 } from './configSchema';
 import { logger } from '../shared/logger';
+
+function addFileExtension(filePath: string, style: string): string {
+  const extensionMap: Record<string, string> = {
+    xml: '.xml',
+    markdown: '.md',
+    plain: '.txt',
+  };
+  const extension = extensionMap[style];
+
+  if (filePath.endsWith(extension)) {
+    return filePath;
+  }
+
+  return `${filePath}${extension}`;
+}
 
 export function readRepomixRunnerVscodeConfig(): RepomixRunnerConfigDefault {
   const config = vscode.workspace.getConfiguration('repomix');
@@ -49,10 +63,17 @@ export function mergeConfigs(
 ): MergedConfig {
   const baseConfig: RepomixRunnerConfigDefault = defaultConfig;
 
-  const outputFilePath =
+  let outputFilePath =
     configFromRepomixFile?.output?.filePath ||
     configFromRepomixRunnerVscode.output.filePath ||
     baseConfig.output.filePath;
+
+  const outputStyle =
+    configFromRepomixFile?.output?.style ||
+    configFromRepomixRunnerVscode.output.style ||
+    baseConfig.output.style;
+
+  outputFilePath = addFileExtension(outputFilePath, outputStyle);
 
   const mergedConfig = {
     targetDirBasename: path.relative(cwd, targetDir) || path.basename(cwd),

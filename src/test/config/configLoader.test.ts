@@ -433,5 +433,49 @@ suite('configLoader', () => {
       assert.deepStrictEqual(mergedEmpty.include, ['**/*.txt']);
       assert.deepStrictEqual(mergedEmpty.ignore.customPatterns, ['**/*.md']);
     });
+
+    /**
+     * Test to ensure that the output file path extension is correctly set with the correct file extension
+     * for different output styles.
+     *
+     * Steps:
+     * 1. Create a VSCode configuration with a specific output style.
+     * 2. Create a file configuration with an empty output file path.
+     * 3. Merge these configurations.
+     * 4. Assert that the merged configuration's output file path has the correct file extension.
+     */
+    const styleExtensionTests = [
+      { style: 'plain' as const, extension: '.txt' },
+      { style: 'xml' as const, extension: '.xml' },
+      { style: 'markdown' as const, extension: '.md' },
+    ];
+
+    styleExtensionTests.forEach(({ style, extension }) => {
+      test(`should handle ${style} style file extension correctly`, () => {
+        // Test without extension
+        const configWithoutExt: RepomixRunnerConfigDefault = {
+          ...defaultConfig,
+          output: {
+            ...defaultConfig.output,
+            style,
+            filePath: 'output',
+          },
+        };
+        const mergedWithoutExt = mergeConfigs(testCwd, {}, configWithoutExt, targetDir);
+        assert.strictEqual(path.basename(mergedWithoutExt.output.filePath), `output${extension}`);
+
+        // Test with correct extension already set, it should not be overridden twice
+        const configWithExt: RepomixRunnerConfigDefault = {
+          ...defaultConfig,
+          output: {
+            ...defaultConfig.output,
+            style,
+            filePath: `output${extension}`,
+          },
+        };
+        const mergedWithExt = mergeConfigs(testCwd, {}, configWithExt, targetDir);
+        assert.strictEqual(path.basename(mergedWithExt.output.filePath), `output${extension}`);
+      });
+    });
   });
 });
