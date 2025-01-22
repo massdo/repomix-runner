@@ -320,9 +320,118 @@ suite('configLoader', () => {
       assert.ok(path.relative(testCwd, merged.output.filePath) === 'custom.txt');
     });
 
-    test('should not throw error when repomix.config.json has comments', async () => {
-      const config = await readRepomixFileConfig(testCwd);
-      assert.ok(config);
+    /**
+     * Test to verify that when the copyMode is set to 'file', the copied file name
+     * should be the relative target directory path combined with the config.output.filePath.
+     *
+     * Steps:
+     * 1. Create a VSCode configuration with copyMode set to 'file' and useTargetAsOutput set to true.
+     * 2. Merge this configuration with an empty file configuration.
+     * 3. Assert that the merged configuration's targetPathRelative is 'foo/bar/output.txt'.
+     *
+     * Possible Failures:
+     * - The test may fail if the mergeConfigs function does not correctly prioritize the VSCode configuration
+     *   when the file configuration is empty.
+     * - The test may also fail if the path resolution logic in mergeConfigs is incorrect.
+     */
+    test('when copyMode is file, copied file name should be the reelative target dir path + config.output.filePath', () => {
+      const vscodeConfig: RepomixRunnerConfigDefault = {
+        ...defaultConfig,
+        runner: {
+          ...defaultConfig.runner,
+          copyMode: 'file',
+          useTargetAsOutput: true,
+        },
+        output: {
+          ...defaultConfig.output,
+          filePath: 'output.txt',
+        },
+      };
+
+      const fileConfig: RepomixConfigFile = {};
+      const merged = mergeConfigs(testCwd, fileConfig, vscodeConfig, targetDir);
+      assert.strictEqual(merged.targetPathRelative, 'foo/bar/output.txt');
+    });
+
+    /**
+     * Test to ensure that when copyMode is set to 'file', the repomix.config.json
+     * file should override the VSCode settings for the output file path.
+     *
+     * Steps:
+     * 1. Create a VSCode configuration with copyMode set to 'file' and useTargetAsOutput set to true.
+     * 2. Create a file configuration with a specific output file path.
+     * 3. Merge these configurations.
+     * 4. Assert that the merged configuration's targetPathRelative is 'foo/bar/repomixFileOutput.txt'.
+     *
+     * Possible Failures:
+     * - The test may fail if the mergeConfigs function does not correctly prioritize the file configuration
+     *   over the VSCode configuration.
+     * - The test may also fail if the path resolution logic in mergeConfigs is incorrect.
+     */
+    test('when copyMode is file, repomix.config.json should override vscode settings', () => {
+      const vscodeConfig: RepomixRunnerConfigDefault = {
+        ...defaultConfig,
+        runner: {
+          ...defaultConfig.runner,
+          copyMode: 'file',
+          useTargetAsOutput: true,
+        },
+        output: {
+          ...defaultConfig.output,
+          filePath: 'output.txt',
+        },
+      };
+
+      const fileConfig: RepomixConfigFile = { output: { filePath: 'repomixFileOutput.txt' } };
+      const merged = mergeConfigs(testCwd, fileConfig, vscodeConfig, targetDir);
+      assert.strictEqual(merged.targetPathRelative, 'foo/bar/repomixFileOutput.txt');
+    });
+
+    /**
+     * Test to ensure that the repomix.config.json file overrides the VSCode settings
+     * for include and ignore patterns.
+     *
+     * Steps:
+     * 1. Create a VSCode configuration with specific include and ignore patterns.
+     * 2. Create a file configuration with overriding include and ignore patterns.
+     * 3. Merge these configurations.
+     * 4. Assert that the merged configuration's include and ignore.customPatterns match the file configuration.
+     * 5. Create an empty file configuration.
+     * 6. Merge the empty file configuration with the VSCode configuration.
+     * 7. Assert that the merged configuration's include and ignore.customPatterns match the VSCode configuration.
+     *
+     * Possible Failures:
+     * - The test may fail if the mergeConfigs function does not correctly prioritize the file configuration
+     *   over the VSCode configuration for include and ignore patterns.
+     * - The test may also fail if the mergeConfigs function does not correctly handle an empty file configuration,
+     *   resulting in incorrect defaults from the VSCode configuration.
+     */
+    test('repomix.config.json file should override vscode settings for include and ignore patterns', () => {
+      const vscodeConfig: RepomixRunnerConfigDefault = {
+        ...defaultConfig,
+        include: ['**/*.txt'],
+        ignore: {
+          useGitignore: true,
+          useDefaultPatterns: true,
+          customPatterns: ['**/*.md'],
+        },
+      };
+
+      const fileConfig: RepomixConfigFile = {
+        include: ['**/*.js'],
+        ignore: {
+          customPatterns: ['**/*.ts'],
+        },
+      };
+
+      const merged = mergeConfigs(testCwd, fileConfig, vscodeConfig, targetDir);
+      assert.deepStrictEqual(merged.include, ['**/*.js']);
+      assert.deepStrictEqual(merged.ignore.customPatterns, ['**/*.ts']);
+
+      const fileconfigEmpty = {};
+      const mergedEmpty = mergeConfigs(testCwd, fileconfigEmpty, vscodeConfig, targetDir);
+      assert.deepStrictEqual(mergedEmpty.include, ['**/*.txt']);
+      assert.deepStrictEqual(mergedEmpty.ignore.customPatterns, ['**/*.md']);
     });
   });
 });

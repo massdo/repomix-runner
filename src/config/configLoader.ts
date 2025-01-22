@@ -49,34 +49,44 @@ export function mergeConfigs(
 ): MergedConfig {
   const baseConfig: RepomixRunnerConfigDefault = defaultConfig;
 
-  let repomixMergedConfig = {
-    ...configFromRepomixRunnerVscode,
-    ...configFromRepomixFile,
-  };
-
-  // add the minimal default fields if not given in the vscode settings or the config file
-  if (
-    configFromRepomixFile?.output?.filePath === null &&
-    configFromRepomixRunnerVscode?.output?.filePath === null
-  ) {
-    const style = repomixMergedConfig.output?.style || baseConfig.output.style;
-    baseConfig.output.filePath = defaultFilePathMap[style];
-
-    logger.both.trace('Default output file path is set to:', baseConfig.output.filePath);
-  }
+  const outputFilePath =
+    configFromRepomixFile?.output?.filePath ||
+    configFromRepomixRunnerVscode.output.filePath ||
+    baseConfig.output.filePath;
 
   const mergedConfig = {
     targetDirBasename: path.relative(cwd, targetDir) || path.basename(cwd),
     targetDir,
-    targetPathRelative: path.relative(cwd, path.resolve(targetDir, baseConfig.output.filePath)),
-    ...baseConfig,
-    ...repomixMergedConfig,
+    targetPathRelative: path.relative(cwd, path.resolve(targetDir, outputFilePath)),
+    runner: {
+      ...baseConfig.runner,
+      ...configFromRepomixRunnerVscode.runner,
+    },
     output: {
       ...baseConfig.output,
-      ...repomixMergedConfig.output,
+      ...configFromRepomixRunnerVscode.output,
+      ...configFromRepomixFile?.output,
       filePath: configFromRepomixRunnerVscode.runner.useTargetAsOutput
-        ? path.resolve(targetDir, repomixMergedConfig.output.filePath || baseConfig.output.filePath)
-        : path.resolve(cwd, repomixMergedConfig.output.filePath || baseConfig.output.filePath),
+        ? path.resolve(targetDir, outputFilePath)
+        : path.resolve(cwd, outputFilePath),
+    },
+    include:
+      // MEMO on cumule  dans repomix -> issue ?
+      configFromRepomixFile?.include || configFromRepomixRunnerVscode.include || baseConfig.include,
+    ignore: {
+      ...baseConfig.ignore,
+      ...configFromRepomixRunnerVscode.ignore,
+      ...configFromRepomixFile?.ignore,
+      customPatterns:
+        // MEMO on cumule  dans repomix -> issue ?
+        configFromRepomixFile?.ignore?.customPatterns ||
+        configFromRepomixRunnerVscode.ignore.customPatterns ||
+        baseConfig.ignore.customPatterns,
+    },
+    security: {
+      ...baseConfig.security,
+      ...configFromRepomixRunnerVscode.security,
+      ...configFromRepomixFile?.security,
     },
   };
 
