@@ -5,6 +5,18 @@ All notable changes to the "Repomix Runner" extension will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.14] - 2025-01-22
+
+### Added
+
+- File extension handling for output paths in config merging
+- New tests for filepath resolution
+
+### Changed
+
+- Modified ignore and include pattern logic from cumulative to overriding behavior between Repomix config (priority) and VSCode config.
+- Enhanced config merging logic
+
 ## [0.0.13] - 2025-01-20
 
 ### Fixed
