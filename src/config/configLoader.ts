@@ -12,6 +12,16 @@ import {
 } from './configSchema';
 import { logger } from '../shared/logger';
 
+function stripJsonComments(json: string): string {
+  // Remove multi-line comments but preserve line breaks
+  json = json.replace(/\/\*[\s\S]*?\*\//g, match => match.replace(/[^\r\n]/g, ' '));
+
+  // Remove single-line comments but preserve line breaks
+  json = json.replace(/\/\/[^\n\r]*/g, match => match.replace(/[^\r\n]/g, ' '));
+
+  return json;
+}
+
 function addFileExtension(filePath: string, style: string): string {
   const extensionMap: Record<string, string> = {
     xml: '.xml',
@@ -45,7 +55,6 @@ export async function readRepomixFileConfig(cwd: string): Promise<RepomixConfigF
 
   try {
     const data = await readFile(configPath, 'utf8');
-    const { default: stripJsonComments } = await import('strip-json-comments');
     const config = JSON.parse(stripJsonComments(data));
     return repomixConfigBaseSchema.parse(config);
   } catch (error) {
