@@ -194,7 +194,7 @@
         {
           "command": "repomixRunner.run",
           "when": "explorerResourceIsFolder",
-          "group": "navigation@1"
+          "group": "7_modification"
         }
       ]
     }
