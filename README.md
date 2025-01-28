@@ -91,7 +91,6 @@ We added 3 new Runner settings on top of repomix settings (output, include, igno
 ## ⚠️ Known Issues
 
 - File copy mode is only available on macOS and linux (you need to install xclip for file copy mode on linux)
-- Need to support the last repomix settings (tokenCount, headerText,..)
 
 ## 🤝 Contributing
 
