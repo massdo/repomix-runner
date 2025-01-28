@@ -111,6 +111,9 @@ suite('configLoader', () => {
         output: {
           filePath: 'output.txt',
           style: 'plain',
+          parsableStyle: false,
+          headerText: '',
+          instructionFilePath: '',
           fileSummary: true,
           directoryStructure: true,
           removeComments: false,
@@ -118,6 +121,7 @@ suite('configLoader', () => {
           topFilesLength: 5,
           showLineNumbers: true,
           copyToClipboard: false,
+          includeEmptyDirectories: false,
         },
         include: ['**/*'],
         ignore: {
@@ -127,6 +131,9 @@ suite('configLoader', () => {
         },
         security: {
           enableSecurityCheck: true,
+        },
+        tokenCount: {
+          encoding: 'o200k_base',
         },
       };
       // stub the vscode settings
@@ -233,6 +240,9 @@ suite('configLoader', () => {
         output: {
           filePath: 'output.txt',
           style: 'xml',
+          parsableStyle: false,
+          headerText: '',
+          instructionFilePath: '',
           fileSummary: true,
           directoryStructure: true,
           removeComments: false,
@@ -240,6 +250,7 @@ suite('configLoader', () => {
           topFilesLength: 10,
           showLineNumbers: true,
           copyToClipboard: false,
+          includeEmptyDirectories: false,
         },
         include: ['**/*'],
         ignore: {
@@ -250,12 +261,26 @@ suite('configLoader', () => {
         security: {
           enableSecurityCheck: true,
         },
+        tokenCount: {
+          encoding: 'o200k_base',
+        },
       };
 
       const fileConfig: RepomixConfigFile = {
         output: {
           style: 'plain',
           filePath: 'custom.txt',
+          headerText: 'coucou',
+          parsableStyle: true,
+          instructionFilePath: 'instruction.txt',
+          includeEmptyDirectories: true,
+        },
+        ignore: {
+          useGitignore: false,
+          useDefaultPatterns: false,
+        },
+        tokenCount: {
+          encoding: 'gpt2',
         },
       };
 
@@ -264,6 +289,13 @@ suite('configLoader', () => {
       assert.ok(merged.targetDir === targetDir);
       assert.ok(merged.targetDirBasename === path.relative(testCwd, targetDir));
       assert.ok(merged.output.style === 'plain'); // xml from vscode settings is overridden by plain from repomix.config.json
+      assert.ok(merged.output.headerText === 'coucou');
+      assert.ok(merged.output.parsableStyle === true);
+      assert.ok(merged.output.instructionFilePath === 'instruction.txt');
+      assert.ok(merged.output.includeEmptyDirectories === true);
+      assert.ok(merged.ignore.useGitignore === false);
+      assert.ok(merged.ignore.useDefaultPatterns === false);
+      assert.ok(merged.tokenCount.encoding === 'gpt2');
     });
 
     /**

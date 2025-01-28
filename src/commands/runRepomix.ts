@@ -65,6 +65,7 @@ export async function runRepomix(
 
     if (stderr) {
       logger.both.error('stderr: \n', stderr);
+      throw new Error(stderr);
     }
 
     const tmpFilePath = path.join(tempDir, config.targetPathRelative.split('/').join('_'));

@@ -54,6 +54,71 @@ suite('CliFlagsBuilder', () => {
     assert.ok(flags.includes('--style markdown'));
   });
 
+  test('should add "--parsable-style" flag when output.parsableStyle is true', () => {
+    const config: MergedConfig = {
+      ...baseConfig,
+      output: { ...baseConfig.output, parsableStyle: true },
+    };
+    const flags = cliFlagsBuilder(config);
+    assert.ok(flags.includes('--parsable-style'));
+  });
+
+  test('should add "--header-text" flag when output.headerText is specified', () => {
+    const config: MergedConfig = {
+      ...baseConfig,
+      output: { ...baseConfig.output, headerText: 'coucou' },
+    };
+    const flags = cliFlagsBuilder(config);
+    assert.ok(flags.includes('--header-text "coucou"'));
+  });
+
+  test('should add "--instruction-file-path" flag when output.instructionFilePath is specified', () => {
+    const config: MergedConfig = {
+      ...baseConfig,
+      output: { ...baseConfig.output, instructionFilePath: 'instruction.txt' },
+    };
+    const flags = cliFlagsBuilder(config);
+    assert.ok(flags.includes('--instruction-file-path "instruction.txt"'));
+  });
+
+  test('should add "--include-empty-directories" flag when output.includeEmptyDirectories is true', () => {
+    const config: MergedConfig = {
+      ...baseConfig,
+      output: { ...baseConfig.output, includeEmptyDirectories: true },
+    };
+    const flags = cliFlagsBuilder(config);
+    assert.ok(flags.includes('--include-empty-directories'));
+  });
+
+  test('should add "--no-gitignore" flag when ignore.useGitignore is false', () => {
+    const config: MergedConfig = {
+      ...baseConfig,
+      ignore: { ...baseConfig.ignore, useGitignore: false },
+    };
+    const flags = cliFlagsBuilder(config);
+    assert.ok(flags.includes('--no-gitignore'));
+  });
+
+  test('should add "--no-default-patterns" flag when ignore.useDefaultPatterns is false', () => {
+    const config: MergedConfig = {
+      ...baseConfig,
+      ignore: { ...baseConfig.ignore, useDefaultPatterns: false },
+    };
+    const flags = cliFlagsBuilder(config);
+    assert.ok(flags.includes('--no-default-patterns'));
+  });
+
+  test('shouldf add "--token-count-encoding" flag when config.tokenCountEncoding is specified', () => {
+    const config: MergedConfig = {
+      ...baseConfig,
+      tokenCount: {
+        encoding: 'o200k_base',
+      },
+    };
+    const flags = cliFlagsBuilder(config);
+    assert.ok(flags.includes('--token-count-encoding o200k_base'));
+  });
+
   test('should add "--no-file-summary" flag when output.fileSummary is false', () => {
     const config: MergedConfig = {
       ...baseConfig,

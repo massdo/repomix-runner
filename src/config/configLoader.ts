@@ -118,6 +118,11 @@ export function mergeConfigs(
       ...configFromRepomixRunnerVscode.security,
       ...configFromRepomixFile?.security,
     },
+    tokenCount: {
+      ...baseConfig.tokenCount,
+      ...configFromRepomixRunnerVscode.tokenCount,
+      ...configFromRepomixFile?.tokenCount,
+    },
   };
 
   return mergedConfigSchema.parse(mergedConfig);
