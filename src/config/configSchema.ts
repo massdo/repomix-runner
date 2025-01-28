@@ -1,3 +1,4 @@
+import type { TiktokenEncoding } from 'tiktoken';
 import { z } from 'zod';
 
 // Output style enum
@@ -16,6 +17,9 @@ export const repomixConfigBaseSchema = z.object({
     .object({
       filePath: z.string().optional(),
       style: repomixOutputStyleSchema.optional(),
+      parsableStyle: z.boolean().optional(),
+      headerText: z.string().optional(),
+      instructionFilePath: z.string().optional(),
       fileSummary: z.boolean().optional(),
       directoryStructure: z.boolean().optional(),
       removeComments: z.boolean().optional(),
@@ -23,6 +27,7 @@ export const repomixConfigBaseSchema = z.object({
       topFilesLength: z.number().optional(),
       showLineNumbers: z.boolean().optional(),
       copyToClipboard: z.boolean().optional(),
+      includeEmptyDirectories: z.boolean().optional(),
     })
     .optional(),
   include: z.array(z.string()).optional(),
@@ -38,6 +43,11 @@ export const repomixConfigBaseSchema = z.object({
       enableSecurityCheck: z.boolean().optional(),
     })
     .optional(),
+  tokenCount: z
+    .object({
+      encoding: z.string().optional(),
+    })
+    .optional(),
 });
 
 // Default config schema (avec valeurs par défaut)
@@ -46,6 +56,9 @@ export const repomixConfigDefaultSchema = z.object({
     .object({
       filePath: z.string().default(defaultFilePathMap.plain),
       style: repomixOutputStyleSchema.default('plain'),
+      parsableStyle: z.boolean().default(false),
+      headerText: z.string().default(''),
+      instructionFilePath: z.string().default(''),
       fileSummary: z.boolean().default(true),
       directoryStructure: z.boolean().default(true),
       removeComments: z.boolean().default(false),
@@ -53,6 +66,7 @@ export const repomixConfigDefaultSchema = z.object({
       topFilesLength: z.number().default(5),
       showLineNumbers: z.boolean().default(false),
       copyToClipboard: z.boolean().default(false),
+      includeEmptyDirectories: z.boolean().default(false),
     })
     .default({}),
   include: z.array(z.string()).default([]),
@@ -66,6 +80,14 @@ export const repomixConfigDefaultSchema = z.object({
   security: z
     .object({
       enableSecurityCheck: z.boolean().default(true),
+    })
+    .default({}),
+  tokenCount: z
+    .object({
+      encoding: z
+        .string()
+        .default('o200k_base')
+        .transform(val => val as TiktokenEncoding),
     })
     .default({}),
 });

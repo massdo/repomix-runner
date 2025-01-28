@@ -6,8 +6,9 @@ export const cliFlags = {
   output: {
     filePath: '--output',
     style: '--style',
-    headerText: null, // MEMO no flag yet for this config in repomix ?
-    instructionFilePath: null, // MEMO no flag yet for this config in repomix ?
+    parsableStyle: '--parsable-style',
+    headerText: '--header-text',
+    instructionFilePath: '--instruction-file-path',
     fileSummary: '--no-file-summary',
     directoryStructure: '--no-directory-structure',
     removeComments: '--remove-comments',
@@ -15,19 +16,19 @@ export const cliFlags = {
     showLineNumbers: '--output-show-line-numbers',
     copyToClipboard: '--copy',
     topFilesLength: '--top-files-len',
-    includeEmptyDirectories: null, // MEMO no flag yet for this config in repomix ?
+    includeEmptyDirectories: '--include-empty-directories',
   },
   include: '--include',
   ignore: {
-    useGitignore: null, // MEMO no flag yet for this config in repomix ?
-    useDefaultPatterns: null, // MEMO no flag yet for this config in repomix ?
+    useGitignore: '--no-gitignore',
+    useDefaultPatterns: '--no-default-patterns',
     customPatterns: '--ignore',
   },
   security: {
     enableSecurityCheck: '--no-security-check',
   },
   tokenCount: {
-    encoding: null, // MEMO no flag yet for this config in repomix ?
+    encoding: '--token-count-encoding',
   },
 } as const;
 
@@ -42,6 +43,18 @@ export function cliFlagsBuilder(config: MergedConfig, flags = cliFlags): string 
   }
   if (config.output.style) {
     outputFlags.push(`${flags.output.style} ${config.output.style}`);
+  }
+  if (config.output.parsableStyle) {
+    outputFlags.push(flags.output.parsableStyle);
+  }
+  if (config.output.headerText) {
+    outputFlags.push(`${flags.output.headerText} "${config.output.headerText}"`);
+  }
+  if (config.output.instructionFilePath) {
+    outputFlags.push(`${flags.output.instructionFilePath} "${config.output.instructionFilePath}"`);
+  }
+  if (config.output.includeEmptyDirectories) {
+    outputFlags.push(flags.output.includeEmptyDirectories);
   }
   if (!config.output.fileSummary) {
     outputFlags.push(flags.output.fileSummary);
@@ -74,9 +87,19 @@ export function cliFlagsBuilder(config: MergedConfig, flags = cliFlags): string 
   if (config.ignore.customPatterns.length > 0) {
     outputFlags.push(`${flags.ignore.customPatterns} "${config.ignore.customPatterns.join(',')}"`);
   }
+  if (!config.ignore.useGitignore) {
+    outputFlags.push(flags.ignore.useGitignore);
+  }
+  if (!config.ignore.useDefaultPatterns) {
+    outputFlags.push(flags.ignore.useDefaultPatterns);
+  }
   // Security
   if (!config.security.enableSecurityCheck) {
     outputFlags.push(flags.security.enableSecurityCheck);
+  }
+  // Token Count
+  if (config.tokenCount.encoding) {
+    outputFlags.push(`${flags.tokenCount.encoding} ${config.tokenCount.encoding}`);
   }
 
   return outputFlags.join(' ');

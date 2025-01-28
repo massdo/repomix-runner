@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import { runRepomix } from '../../commands/runRepomix';
 import { type ChildProcess, type ExecOptions } from 'child_process';
 import { execPromisify } from '../../shared/execPromisify';
+import { MergedConfig } from '../../config/configSchema';
 
 type PromiseWithChild<T> = Promise<T> & { child: ChildProcess };
 
@@ -12,7 +13,7 @@ suite('runRepomix', () => {
     return promise as PromiseWithChild<{ stdout: string; stderr: string }>;
   }) as unknown as typeof execPromisify;
 
-  const baseTestConfig = {
+  const baseTestConfig: MergedConfig = {
     targetDir: '/fake/target',
     targetDirBasename: 'target',
     targetPathRelative: 'target',
@@ -24,6 +25,9 @@ suite('runRepomix', () => {
     output: {
       filePath: '/fake/output.txt',
       style: 'plain' as const,
+      parsableStyle: false,
+      headerText: '',
+      instructionFilePath: '',
       fileSummary: true,
       directoryStructure: true,
       removeComments: false,
@@ -31,10 +35,12 @@ suite('runRepomix', () => {
       topFilesLength: 5,
       showLineNumbers: false,
       copyToClipboard: false,
+      includeEmptyDirectories: false,
     },
     include: [],
     ignore: { useGitignore: true, useDefaultPatterns: true, customPatterns: [] },
     security: { enableSecurityCheck: true },
+    tokenCount: { encoding: 'o200k_base' },
   };
 
   test('should call copyToClipboard when config.output.copyToClipboard is true and config.runner.copyMode is file', async () => {

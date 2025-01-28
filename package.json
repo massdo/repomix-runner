@@ -70,10 +70,40 @@
             "default": "plain",
             "description": "🎨 \n Output format style"
           },
+          "repomix.output.parsableStyle": {
+            "order": 3,
+            "type": "boolean",
+            "default": false,
+            "description": "✂️ \n - Ensures output strictly follows the specification of the chosen format. \n - Provides properly escaped XML output with fast-xml-parser.\n - Dynamically adjusts markdown code block delimiters to avoid content conflicts. \n - Note that this option can increase token count."
+          },
+          "repomix.output.headerText": {
+            "order": 4,
+            "type": "string",
+            "default": "",
+            "description": "📝\n Add a header text to the output"
+          },
           "repomix.output.fileSummary": {
+            "order": 5,
             "type": "boolean",
             "default": true,
             "description": "➕📝\n Include file summary in output"
+          },
+          "repomix.output.removeEmptyLines": {
+            "order": 6,
+            "type": "boolean",
+            "default": false,
+            "description": "🧹 \n Remove empty lines from code"
+          },
+          "repomix.output.includeEmptyDirectories": {
+            "order": 7,
+            "type": "boolean",
+            "default": false,
+            "description": "🧹 \n Include empty directories in output"
+          },
+          "repomix.output.instructionFilePath": {
+            "type": "string",
+            "default": "",
+            "description": "🫡\n Path to a file containing detailed custom instructions "
           },
           "repomix.output.directoryStructure": {
             "type": "boolean",
@@ -84,11 +114,6 @@
             "type": "boolean",
             "default": false,
             "description": "💬 ❌  \n Remove comments from code"
-          },
-          "repomix.output.removeEmptyLines": {
-            "type": "boolean",
-            "default": false,
-            "description": "🧹 \n Remove empty lines from code"
           },
           "repomix.output.copyToClipboard": {
             "type": "boolean",
@@ -159,6 +184,26 @@
             "description": "🔒 \n Enable security check during processing"
           }
         }
+      },
+      {
+        "title": "Token Count",
+        "order": 6,
+        "type": "object",
+        "properties": {
+          "repomix.tokenCount.encoding": {
+            "type": "string",
+            "enum": [
+              "o200k_base",
+              "cl100k_base",
+              "p50k_edit",
+              "p50k_base",
+              "r50k_base",
+              "gpt2"
+            ],
+            "default": "o200k_base",
+            "description": "🔢 \n Token count encoding"
+          }
+        }
       }
     ],
     "commands": [
@@ -222,6 +267,7 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
+    "tiktoken": "^1.0.18",
     "zod": "^3.24.1"
   }
 }
