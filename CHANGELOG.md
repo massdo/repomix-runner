@@ -5,6 +5,18 @@ All notable changes to the "Repomix Runner" extension will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.16] - 2025-01-28
+
+### Changed
+
+- Add new supported Repomix config options
+  - output.parsableStyle
+  - output.headerText
+  - output.instructionFilePath
+  - output.includeEmptyDirectories
+  - ignore.useGitignore
+  - tokenCount.encoding
+
 ## [0.0.15] - 2025-01-23
 
 ### Changed
