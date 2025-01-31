@@ -11,36 +11,49 @@ import { showTempNotification } from '../shared/showTempNotification';
 import { readRepomixFileConfig } from '../config/configLoader';
 import { readRepomixRunnerVscodeConfig } from '../config/configLoader';
 import { tempDirManager } from '../core/files/tempDirManager';
+import { RepomixConfigFile } from '../config/configSchema';
+
+export type RunRepomixDeps = {
+  getCwd: typeof getCwd;
+  copyToClipboard: typeof copyToClipboard;
+  cleanOutputFile: typeof cleanOutputFile;
+  readRepomixRunnerVscodeConfig: typeof readRepomixRunnerVscodeConfig;
+  readRepomixFileConfig: typeof readRepomixFileConfig;
+  mergeConfigs: typeof mergeConfigs;
+  cliFlagsBuilder: typeof cliFlagsBuilder;
+  execPromisify: typeof execPromisify;
+  mergeConfigOverride: RepomixConfigFile | null;
+};
+
+export const defaultRunRepomixDeps: RunRepomixDeps = {
+  getCwd,
+  copyToClipboard,
+  cleanOutputFile,
+  readRepomixRunnerVscodeConfig,
+  readRepomixFileConfig,
+  mergeConfigs,
+  cliFlagsBuilder,
+  execPromisify,
+  mergeConfigOverride: null,
+} as const;
 
 export async function runRepomix(
   targetDir: string,
   tempDir: string,
-  deps: {
-    getCwd: typeof getCwd;
-    copyToClipboard: typeof copyToClipboard;
-    cleanOutputFile: typeof cleanOutputFile;
-    readRepomixRunnerVscodeConfig: typeof readRepomixRunnerVscodeConfig;
-    readRepomixFileConfig: typeof readRepomixFileConfig;
-    mergeConfigs: typeof mergeConfigs;
-    cliFlagsBuilder: typeof cliFlagsBuilder;
-    execPromisify: typeof execPromisify;
-  } = {
-    getCwd,
-    copyToClipboard,
-    cleanOutputFile,
-    readRepomixRunnerVscodeConfig,
-    readRepomixFileConfig,
-    mergeConfigs,
-    cliFlagsBuilder,
-    execPromisify,
-  }
+  deps: RunRepomixDeps = defaultRunRepomixDeps
 ): Promise<void> {
   const cwd = deps.getCwd();
 
   // Load config and write repomix command with corresponding flags
   const vscodeConfig = deps.readRepomixRunnerVscodeConfig();
   const configFile = await deps.readRepomixFileConfig(cwd);
-  const config = deps.mergeConfigs(cwd, configFile, vscodeConfig, targetDir);
+  const config = deps.mergeConfigs(
+    cwd,
+    configFile,
+    vscodeConfig,
+    targetDir,
+    deps.mergeConfigOverride
+  );
 
   const cliFlags = deps.cliFlagsBuilder(config);
 

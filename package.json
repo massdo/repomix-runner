@@ -214,6 +214,12 @@
         "icon": "assets/repomix-logo.svg"
       },
       {
+        "command": "repomixRunner.runOnOpenFiles",
+        "title": "Repomix Run On Open Files",
+        "description": "Run repomix on the open files",
+        "icon": "assets/file.svg"
+      },
+      {
         "command": "repomixRunner.openSettings",
         "title": "Repomix Settings",
         "description": "Open Repomix Runner settings",
@@ -231,6 +237,12 @@
         {
           "command": "repomixRunner.run",
           "title": "Repomix Run",
+          "group": "navigation@2",
+          "when": "view =~ /explorer/"
+        },
+        {
+          "command": "repomixRunner.runOnOpenFiles",
+          "title": "Repomix On Open Files",
           "group": "navigation@1",
           "when": "view =~ /explorer/"
         }

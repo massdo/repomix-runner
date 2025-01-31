@@ -69,6 +69,7 @@ suite('runRepomix', () => {
       cliFlagsBuilder: () => '',
       execPromisify: mockExecPromisify,
       cleanOutputFile: () => Promise.resolve(),
+      mergeConfigOverride: null,
     };
 
     // Execute
@@ -113,6 +114,7 @@ suite('runRepomix', () => {
       cliFlagsBuilder: () => '',
       execPromisify: mockExecPromisify,
       copyToClipboard: () => Promise.resolve(),
+      mergeConfigOverride: null,
     };
 
     // Execute

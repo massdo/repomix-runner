@@ -68,7 +68,8 @@ export function mergeConfigs(
   cwd: string,
   configFromRepomixFile: RepomixConfigFile | void,
   configFromRepomixRunnerVscode: RepomixRunnerConfigDefault,
-  targetDir: string
+  targetDir: string,
+  overrideConfig: RepomixConfigFile | null = null
 ): MergedConfig {
   const baseConfig: RepomixRunnerConfigDefault = defaultConfig;
 
@@ -96,19 +97,26 @@ export function mergeConfigs(
       ...baseConfig.output,
       ...configFromRepomixRunnerVscode.output,
       ...configFromRepomixFile?.output,
-      filePath: configFromRepomixRunnerVscode.runner.useTargetAsOutput
-        ? path.resolve(targetDir, outputFilePath)
-        : path.resolve(cwd, outputFilePath),
+      ...overrideConfig?.output,
+      filePath:
+        overrideConfig?.output?.filePath || configFromRepomixRunnerVscode.runner.useTargetAsOutput
+          ? path.resolve(targetDir, outputFilePath)
+          : path.resolve(cwd, outputFilePath),
     },
     include:
       // MEMO on cumule  dans repomix -> issue ?
-      configFromRepomixFile?.include || configFromRepomixRunnerVscode.include || baseConfig.include,
+      overrideConfig?.include ||
+      configFromRepomixFile?.include ||
+      configFromRepomixRunnerVscode.include ||
+      baseConfig.include,
     ignore: {
       ...baseConfig.ignore,
       ...configFromRepomixRunnerVscode.ignore,
       ...configFromRepomixFile?.ignore,
+      ...overrideConfig?.ignore,
       customPatterns:
         // MEMO on cumule  dans repomix -> issue ?
+        overrideConfig?.ignore?.customPatterns ||
         configFromRepomixFile?.ignore?.customPatterns ||
         configFromRepomixRunnerVscode.ignore.customPatterns ||
         baseConfig.ignore.customPatterns,
@@ -117,11 +125,13 @@ export function mergeConfigs(
       ...baseConfig.security,
       ...configFromRepomixRunnerVscode.security,
       ...configFromRepomixFile?.security,
+      ...overrideConfig?.security,
     },
     tokenCount: {
       ...baseConfig.tokenCount,
       ...configFromRepomixRunnerVscode.tokenCount,
       ...configFromRepomixFile?.tokenCount,
+      ...overrideConfig?.tokenCount,
     },
   };
 
