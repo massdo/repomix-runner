@@ -19,22 +19,25 @@ Repomix Runner is a VS Code extension that runs the [Repomix](https://github.com
 
 ## 📖 Usage
 
-To pack the whole project, click on the square icon <img src="assets/repomix-logo.png" alt="Repomix" width="20" height="auto" /> or run the `Repomix Run` command.
+- To pack the whole project, click on the square icon <img src="assets/repomix-logo.png" alt="Repomix" width="20" height="auto" /> or run the `Repomix Run` command.
 
-To pack a specific folder:
+- To pack the open files, click on the files icon <img src="assets/file.png" alt="Repomix" width="20" height="auto" /> or run the `Repomix Run On Open Files` command.
 
-1. 📁 Right-click on any folder in VS Code's explorer
-2. Select "Run Repomix" from the context menu
-3. if you have selected "target as ouput" setting the output file will be in the targetted folder.
-<div align="left">
-  <img src="assets/demo.png" alt="Repomix" width="auto" height="400" />
+- To pack a specific folder right-click on any folder in VS Code's explorer and select "Run Repomix" from the context menu.
+
+<div style="display: flex; flex-wrap: wrap; justify-content: start; align-items: start; gap: 10px; margin-bottom: 50px;">
+  <img src="assets/demo.png" alt="Repomix" width="400" height="auto" />
+  <img src="assets/open-files.png" alt="Repomix" width="400" height="auto" />
 </div>
+
+And you can use the convenient commands to access settings and output ⬇️
 
 ## ⚙️ Commands
 
 Open the palette with `Cmd+Shift+P` or `Ctrl+Shift+P` then:
 
 - `Repomix Run` to run repomix on the root folder of your project
+- `Repomix Run On Open Files` to run repomix on the open files
 - `Repomix Settings` for a quick access to the settings
 - `Repomix Output` to open the repomix output channel
 
