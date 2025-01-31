@@ -5,6 +5,16 @@ All notable changes to the "Repomix Runner" extension will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.17] - 2025-01-31
+
+### Added
+
+- New command **"Repomix Run On Open Files"** to run Repomix only on currently open files.
+- Added a new **files icon** in the explorer title for the **"Repomix Run On Open Files"** command.
+- Added a friendly notification when no files are open.
+
+**Note:** Open files are passed via the `--include` flag to Repomix. If any **ignore patterns** match the open files, they will still be ignored.
+
 ## [0.0.16] - 2025-01-28
 
 ### Changed
