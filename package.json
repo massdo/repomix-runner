@@ -316,10 +316,10 @@
 					"group": "repomix"
 				},
 				{
-					"when": "explorerResourceIsFolder || explorerResourceIsFile",
+					"when": "explorerResourceIsFolder || resourceLangId",
 					"command": "repomixRunner.saveBundle",
-					"group": "repomix"
-				}
+					"group": "repomix@1"
+				}				  
 			]
 		}
 	},

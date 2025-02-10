@@ -31,6 +31,7 @@ export class BundleManager {
 
   async getAllBundles(): Promise<BundleMetadata> {
     try {
+      await this.initialize(); // Make sure the file exists
       const content = await fs.readFile(this.bundlesFile, 'utf-8');
       return JSON.parse(content);
     } catch (error) {

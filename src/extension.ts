@@ -52,9 +52,29 @@ export function activate(context: vscode.ExtensionContext) {
 
   const saveBundleCommand = vscode.commands.registerCommand(
     'repomixRunner.saveBundle',
-    (uri: vscode.Uri, uris: vscode.Uri[]) => {
-      const selectedUris = uris || (uri ? [uri] : []);
-      saveBundle(selectedUris);
+    async (uri: vscode.Uri, uris: vscode.Uri[]) => {
+      // Get selected files from the explorer
+      let selectedUris: vscode.Uri[] = [];
+      
+      if (uris && uris.length > 0) {
+        // Multiple files selected
+        selectedUris = uris;
+      } else if (uri) {
+        // Single file selected
+        selectedUris = [uri];
+      } else {
+        // Try to get the current selection
+        selectedUris = vscode.window.activeTextEditor 
+          ? [vscode.window.activeTextEditor.document.uri]
+          : [];
+      }
+  
+      if (selectedUris.length === 0) {
+        vscode.window.showWarningMessage('Please select one or more files first');
+        return;
+      }
+  
+      await saveBundle(selectedUris);
     }
   );
 
