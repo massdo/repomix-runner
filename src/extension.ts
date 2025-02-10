@@ -35,10 +35,7 @@ export function activate(context: vscode.ExtensionContext) {
     openSettings
   );
 
-  const openOutputCommand = vscode.commands.registerCommand(
-    'repomixRunner.openOutput', 
-    openOutput
-  );
+  const openOutputCommand = vscode.commands.registerCommand('repomixRunner.openOutput', openOutput);
 
   const runRepomixOnSelectedFilesCommand = vscode.commands.registerCommand(
     'repomixRunner.runOnSelectedFiles',
@@ -55,7 +52,7 @@ export function activate(context: vscode.ExtensionContext) {
     async (uri: vscode.Uri, uris: vscode.Uri[]) => {
       // Get selected files from the explorer
       let selectedUris: vscode.Uri[] = [];
-      
+
       if (uris && uris.length > 0) {
         // Multiple files selected
         selectedUris = uris;
@@ -64,24 +61,21 @@ export function activate(context: vscode.ExtensionContext) {
         selectedUris = [uri];
       } else {
         // Try to get the current selection
-        selectedUris = vscode.window.activeTextEditor 
+        selectedUris = vscode.window.activeTextEditor
           ? [vscode.window.activeTextEditor.document.uri]
           : [];
       }
-  
+
       if (selectedUris.length === 0) {
         vscode.window.showWarningMessage('Please select one or more files first');
         return;
       }
-  
+
       await saveBundle(selectedUris);
     }
   );
 
-  const runBundleCommand = vscode.commands.registerCommand(
-    'repomixRunner.runBundle',
-    runBundle
-  );
+  const runBundleCommand = vscode.commands.registerCommand('repomixRunner.runBundle', runBundle);
 
   const manageBundlesCommand = vscode.commands.registerCommand(
     'repomixRunner.manageBundles',
@@ -92,12 +86,12 @@ export function activate(context: vscode.ExtensionContext) {
   const bundleTreeProvider = new BundleTreeProvider(getCwd());
   const bundleTreeView = vscode.window.createTreeView('repomixBundles', {
     treeDataProvider: bundleTreeProvider,
-    showCollapseAll: true
+    showCollapseAll: true,
   });
 
   context.subscriptions.push(
     runRepomixCommand,
-    openSettingsCommand, 
+    openSettingsCommand,
     openOutputCommand,
     runRepomixOnOpenFilesCommand,
     runRepomixOnSelectedFilesCommand,

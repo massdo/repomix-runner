@@ -10,7 +10,9 @@ class BundleTreeItem extends vscode.TreeItem {
   ) {
     super(
       type === 'bundle' ? bundle.name : filePath!,
-      type === 'bundle' ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None
+      type === 'bundle'
+        ? vscode.TreeItemCollapsibleState.Collapsed
+        : vscode.TreeItemCollapsibleState.None
     );
 
     if (type === 'bundle') {
@@ -26,10 +28,10 @@ class BundleTreeItem extends vscode.TreeItem {
 }
 
 export class BundleTreeProvider implements vscode.TreeDataProvider<BundleTreeItem> {
-  private _onDidChangeTreeData: vscode.EventEmitter<BundleTreeItem | undefined | null | void> = 
+  private _onDidChangeTreeData: vscode.EventEmitter<BundleTreeItem | undefined | null | void> =
     new vscode.EventEmitter<BundleTreeItem | undefined | null | void>();
-  
-  readonly onDidChangeTreeData: vscode.Event<BundleTreeItem | undefined | null | void> = 
+
+  readonly onDidChangeTreeData: vscode.Event<BundleTreeItem | undefined | null | void> =
     this._onDidChangeTreeData.event;
 
   constructor(private workspaceRoot: string) {}
@@ -48,7 +50,7 @@ export class BundleTreeProvider implements vscode.TreeDataProvider<BundleTreeIte
     }
 
     const bundleManager = new BundleManager(this.workspaceRoot);
-    
+
     if (!element) {
       // Root level - show bundles
       try {

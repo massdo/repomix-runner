@@ -1,355 +1,355 @@
 {
-	"publisher": "DorianMassoulier",
-	"name": "repomix-runner",
-	"displayName": "Repomix Runner",
-	"icon": "assets/repomix-logo.png",
-	"description": "Run Repomix anywhere in your AppTree. The output is copied to clipboard. No more output file to delete.",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/massdo/repomix-runner.git"
-	},
-	"version": "0.0.17",
-	"engines": {
-		"vscode": "^1.93.0"
-	},
-	"categories": [
-		"Other"
-	],
-	"activationEvents": [],
-	"main": "./out/extension.js",
-	"contributes": {
-		"configuration": [
-			{
-				"title": "Runner",
-				"order": 1,
-				"type": "object",
-				"properties": {
-					"repomix.runner.keepOutputFile": {
-						"order": 1,
-						"type": "boolean",
-						"default": true,
-						"description": " 📌 \n Keep the output file after copying its content to clipboard"
-					},
-					"repomix.runner.copyMode": {
-						"order": 3,
-						"type": "string",
-						"enum": [
-							"content",
-							"file"
-						],
-						"default": "content",
-						"description": "✍️ or 💾 \n Choose what to copy to clipboard: 'content' for text content, 'file' for the file itself"
-					},
-					"repomix.runner.useTargetAsOutput": {
-						"order": 2,
-						"type": "boolean",
-						"default": true,
-						"description": "🎯 ➡️  🎯 \n Use the targetted folder as the output folder"
-					}
-				}
-			},
-			{
-				"title": "Output",
-				"order": 2,
-				"type": "object",
-				"properties": {
-					"repomix.output.filePath": {
-						"order": 1,
-						"type": "string",
-						"default": "repomix-output.txt",
-						"description": "⚙️ ➡️ ❓\n Path to the output file"
-					},
-					"repomix.output.style": {
-						"order": 2,
-						"type": "string",
-						"enum": [
-							"plain",
-							"xml",
-							"markdown"
-						],
-						"default": "plain",
-						"description": "🎨 \n Output format style"
-					},
-					"repomix.output.parsableStyle": {
-						"order": 3,
-						"type": "boolean",
-						"default": false,
-						"description": "✂️ \n - Ensures output strictly follows the specification of the chosen format. \n - Provides properly escaped XML output with fast-xml-parser.\n - Dynamically adjusts markdown code block delimiters to avoid content conflicts. \n - Note that this option can increase token count."
-					},
-					"repomix.output.headerText": {
-						"order": 4,
-						"type": "string",
-						"default": "",
-						"description": "📝\n Add a header text to the output"
-					},
-					"repomix.output.fileSummary": {
-						"order": 5,
-						"type": "boolean",
-						"default": true,
-						"description": "➕📝\n Include file summary in output"
-					},
-					"repomix.output.removeEmptyLines": {
-						"order": 6,
-						"type": "boolean",
-						"default": false,
-						"description": "🧹 \n Remove empty lines from code"
-					},
-					"repomix.output.includeEmptyDirectories": {
-						"order": 7,
-						"type": "boolean",
-						"default": false,
-						"description": "🧹 \n Include empty directories in output"
-					},
-					"repomix.output.instructionFilePath": {
-						"type": "string",
-						"default": "",
-						"description": "🫡\n Path to a file containing detailed custom instructions "
-					},
-					"repomix.output.directoryStructure": {
-						"type": "boolean",
-						"default": true,
-						"description": "➕🌳 \n Include directory tree structure in output"
-					},
-					"repomix.output.removeComments": {
-						"type": "boolean",
-						"default": false,
-						"description": "💬 ❌  \n Remove comments from code"
-					},
-					"repomix.output.copyToClipboard": {
-						"type": "boolean",
-						"default": true,
-						"description": "🔗 \n Copy output to clipboard"
-					},
-					"repomix.output.topFilesLength": {
-						"type": "number",
-						"default": 5,
-						"description": "Number of top files to show"
-					},
-					"repomix.output.showLineNumbers": {
-						"type": "boolean",
-						"default": false,
-						"description": "🔢 \n Show line numbers in output"
-					}
-				}
-			},
-			{
-				"title": "Include",
-				"order": 3,
-				"type": "object",
-				"properties": {
-					"repomix.include": {
-						"type": "array",
-						"items": {
-							"type": "string"
-						},
-						"default": [],
-						"description": "🔍 \n Patterns to include in processing"
-					}
-				}
-			},
-			{
-				"title": "Ignore",
-				"order": 4,
-				"type": "object",
-				"properties": {
-					"repomix.ignore.useGitignore": {
-						"type": "boolean",
-						"default": true,
-						"description": "Use .gitignore patterns"
-					},
-					"repomix.ignore.useDefaultPatterns": {
-						"type": "boolean",
-						"default": true,
-						"description": "Use default ignore patterns"
-					},
-					"repomix.ignore.customPatterns": {
-						"order": 6,
-						"type": "array",
-						"items": {
-							"type": "string"
-						},
-						"default": [],
-						"description": "🙈 \n Custom patterns to ignore"
-					}
-				}
-			},
-			{
-				"title": "Security",
-				"order": 5,
-				"type": "object",
-				"properties": {
-					"repomix.security.enableSecurityCheck": {
-						"type": "boolean",
-						"default": true,
-						"description": "🔒 \n Enable security check during processing"
-					}
-				}
-			},
-			{
-				"title": "Token Count",
-				"order": 6,
-				"type": "object",
-				"properties": {
-					"repomix.tokenCount.encoding": {
-						"type": "string",
-						"enum": [
-							"o200k_base",
-							"cl100k_base",
-							"p50k_edit",
-							"p50k_base",
-							"r50k_base",
-							"gpt2"
-						],
-						"default": "o200k_base",
-						"description": "🔢 \n Token count encoding"
-					}
-				}
-			}
-		],
-		"views": {
-			"repomix-bundles": [
-				{
-					"id": "repomixBundles",
-					"name": "Bundles",
-					"icon": "$(package)",
-					"contextualTitle": "Repomix Bundles"
-				}
-			]
-		},
-		"viewsContainers": {
-			"activitybar": [
-				{
-					"id": "repomix-bundles",
-					"title": "Repomix Bundles",
-					"icon": "$(package)"
-				}
-			]
-		},
-		"commands": [
-			{
-				"command": "repomixRunner.run",
-				"title": "Repomix Run",
-				"description": "Run repomix on the root folder of your project",
-				"icon": "assets/repomix-logo.svg"
-			},
-			{
-				"command": "repomixRunner.saveBundle",
-				"title": "Repomix: Save Selected Files as Bundle"
-			},
-			{
-				"command": "repomixRunner.runBundle",
-				"title": "Repomix: Run Bundle"
-			},
-			{
-				"command": "repomixRunner.manageBundles",
-				"title": "Repomix: Manage Bundles"
-			},
-			{
-				"command": "repomixRunner.refreshBundles",
-				"title": "Repomix: Refresh Bundles",
-				"icon": "$(refresh)"
-			},
-			{
-				"command": "repomixRunner.runOnSelectedFiles",
-				"title": "Run Repomix on Selected Files"
-			},
-			{
-				"command": "repomixRunner.runOnOpenFiles",
-				"title": "Repomix Run On Open Files",
-				"description": "Run repomix on the open files",
-				"icon": "assets/file.svg"
-			},
-			{
-				"command": "repomixRunner.openSettings",
-				"title": "Repomix Settings",
-				"description": "Open Repomix Runner settings",
-				"icon": "$(settings)"
-			},
-			{
-				"command": "repomixRunner.openOutput",
-				"title": "Repomix Output",
-				"description": "Open Repomix Runner output channel",
-				"icon": "$(output)"
-			}
-		],
-		"menus": {
-			"view/title": [
-				{
-					"command": "repomixRunner.run",
-					"title": "Repomix Run",
-					"group": "navigation@2",
-					"when": "view =~ /explorer/"
-				},
-				{
-					"command": "repomixRunner.runOnOpenFiles",
-					"title": "Repomix On Open Files",
-					"group": "navigation@1",
-					"when": "view =~ /explorer/"
-				},
-				{
-					"command": "repomixRunner.refreshBundles",
-					"when": "view == repomixBundles",
-					"group": "navigation"
-				},
-				{
-					"command": "repomixRunner.manageBundles",
-					"when": "view == repomixBundles",
-					"group": "navigation"
-				}
-			],
-			"view/item/context": [
-				{
-					"command": "repomixRunner.runBundle",
-					"when": "viewItem == bundle",
-					"group": "inline"
-				}
-			],
-			"explorer/context": [
-				{
-					"command": "repomixRunner.run",
-					"when": "explorerResourceIsFolder",
-					"group": "navigation@1"
-				},
-				{
-					"command": "repomixRunner.runOnSelectedFiles",
-					"when": "explorerResourceIsFolder || resourceLangId",
-					"group": "repomix"
-				},
-				{
-					"when": "explorerResourceIsFolder || resourceLangId",
-					"command": "repomixRunner.saveBundle",
-					"group": "repomix@1"
-				}				  
-			]
-		}
-	},
-	"scripts": {
-		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./",
-		"pretest": "npm run compile && npm run lint",
-		"lint": "eslint src",
-		"test": "vscode-test"
-	},
-	"devDependencies": {
-		"@types/mocha": "^10.0.10",
-		"@types/node": "20.x",
-		"@types/sinon": "^17.0.3",
-		"@types/vscode": "^1.93.0",
-		"@typescript-eslint/eslint-plugin": "^8.17.0",
-		"@typescript-eslint/parser": "^8.17.0",
-		"@vscode/test-cli": "^0.0.10",
-		"@vscode/test-electron": "^2.4.1",
-		"eslint": "^9.16.0",
-		"globby": "^14.0.2",
-		"sinon": "^19.0.2",
-		"typescript": "^5.7.2"
-	},
-	"dependencies": {
-		"tiktoken": "^1.0.18",
-		"zod": "^3.24.1"
-	},
-	"__metadata": {
-		"size": 944254177
-	}
+  "publisher": "DorianMassoulier",
+  "name": "repomix-runner",
+  "displayName": "Repomix Runner",
+  "icon": "assets/repomix-logo.png",
+  "description": "Run Repomix anywhere in your AppTree. The output is copied to clipboard. No more output file to delete.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/massdo/repomix-runner.git"
+  },
+  "version": "0.0.17",
+  "engines": {
+    "vscode": "^1.93.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": [
+      {
+        "title": "Runner",
+        "order": 1,
+        "type": "object",
+        "properties": {
+          "repomix.runner.keepOutputFile": {
+            "order": 1,
+            "type": "boolean",
+            "default": true,
+            "description": " 📌 \n Keep the output file after copying its content to clipboard"
+          },
+          "repomix.runner.copyMode": {
+            "order": 3,
+            "type": "string",
+            "enum": [
+              "content",
+              "file"
+            ],
+            "default": "content",
+            "description": "✍️ or 💾 \n Choose what to copy to clipboard: 'content' for text content, 'file' for the file itself"
+          },
+          "repomix.runner.useTargetAsOutput": {
+            "order": 2,
+            "type": "boolean",
+            "default": true,
+            "description": "🎯 ➡️  🎯 \n Use the targetted folder as the output folder"
+          }
+        }
+      },
+      {
+        "title": "Output",
+        "order": 2,
+        "type": "object",
+        "properties": {
+          "repomix.output.filePath": {
+            "order": 1,
+            "type": "string",
+            "default": "repomix-output.txt",
+            "description": "⚙️ ➡️ ❓\n Path to the output file"
+          },
+          "repomix.output.style": {
+            "order": 2,
+            "type": "string",
+            "enum": [
+              "plain",
+              "xml",
+              "markdown"
+            ],
+            "default": "plain",
+            "description": "🎨 \n Output format style"
+          },
+          "repomix.output.parsableStyle": {
+            "order": 3,
+            "type": "boolean",
+            "default": false,
+            "description": "✂️ \n - Ensures output strictly follows the specification of the chosen format. \n - Provides properly escaped XML output with fast-xml-parser.\n - Dynamically adjusts markdown code block delimiters to avoid content conflicts. \n - Note that this option can increase token count."
+          },
+          "repomix.output.headerText": {
+            "order": 4,
+            "type": "string",
+            "default": "",
+            "description": "📝\n Add a header text to the output"
+          },
+          "repomix.output.fileSummary": {
+            "order": 5,
+            "type": "boolean",
+            "default": true,
+            "description": "➕📝\n Include file summary in output"
+          },
+          "repomix.output.removeEmptyLines": {
+            "order": 6,
+            "type": "boolean",
+            "default": false,
+            "description": "🧹 \n Remove empty lines from code"
+          },
+          "repomix.output.includeEmptyDirectories": {
+            "order": 7,
+            "type": "boolean",
+            "default": false,
+            "description": "🧹 \n Include empty directories in output"
+          },
+          "repomix.output.instructionFilePath": {
+            "type": "string",
+            "default": "",
+            "description": "🫡\n Path to a file containing detailed custom instructions "
+          },
+          "repomix.output.directoryStructure": {
+            "type": "boolean",
+            "default": true,
+            "description": "➕🌳 \n Include directory tree structure in output"
+          },
+          "repomix.output.removeComments": {
+            "type": "boolean",
+            "default": false,
+            "description": "💬 ❌  \n Remove comments from code"
+          },
+          "repomix.output.copyToClipboard": {
+            "type": "boolean",
+            "default": true,
+            "description": "🔗 \n Copy output to clipboard"
+          },
+          "repomix.output.topFilesLength": {
+            "type": "number",
+            "default": 5,
+            "description": "Number of top files to show"
+          },
+          "repomix.output.showLineNumbers": {
+            "type": "boolean",
+            "default": false,
+            "description": "🔢 \n Show line numbers in output"
+          }
+        }
+      },
+      {
+        "title": "Include",
+        "order": 3,
+        "type": "object",
+        "properties": {
+          "repomix.include": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "🔍 \n Patterns to include in processing"
+          }
+        }
+      },
+      {
+        "title": "Ignore",
+        "order": 4,
+        "type": "object",
+        "properties": {
+          "repomix.ignore.useGitignore": {
+            "type": "boolean",
+            "default": true,
+            "description": "Use .gitignore patterns"
+          },
+          "repomix.ignore.useDefaultPatterns": {
+            "type": "boolean",
+            "default": true,
+            "description": "Use default ignore patterns"
+          },
+          "repomix.ignore.customPatterns": {
+            "order": 6,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "🙈 \n Custom patterns to ignore"
+          }
+        }
+      },
+      {
+        "title": "Security",
+        "order": 5,
+        "type": "object",
+        "properties": {
+          "repomix.security.enableSecurityCheck": {
+            "type": "boolean",
+            "default": true,
+            "description": "🔒 \n Enable security check during processing"
+          }
+        }
+      },
+      {
+        "title": "Token Count",
+        "order": 6,
+        "type": "object",
+        "properties": {
+          "repomix.tokenCount.encoding": {
+            "type": "string",
+            "enum": [
+              "o200k_base",
+              "cl100k_base",
+              "p50k_edit",
+              "p50k_base",
+              "r50k_base",
+              "gpt2"
+            ],
+            "default": "o200k_base",
+            "description": "🔢 \n Token count encoding"
+          }
+        }
+      }
+    ],
+    "views": {
+      "repomix-bundles": [
+        {
+          "id": "repomixBundles",
+          "name": "Bundles",
+          "icon": "$(package)",
+          "contextualTitle": "Repomix Bundles"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "repomix-bundles",
+          "title": "Repomix Bundles",
+          "icon": "$(package)"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "repomixRunner.run",
+        "title": "Repomix Run",
+        "description": "Run repomix on the root folder of your project",
+        "icon": "assets/repomix-logo.svg"
+      },
+      {
+        "command": "repomixRunner.saveBundle",
+        "title": "Repomix: Save Selected Files as Bundle"
+      },
+      {
+        "command": "repomixRunner.runBundle",
+        "title": "Repomix: Run Bundle"
+      },
+      {
+        "command": "repomixRunner.manageBundles",
+        "title": "Repomix: Manage Bundles"
+      },
+      {
+        "command": "repomixRunner.refreshBundles",
+        "title": "Repomix: Refresh Bundles",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "repomixRunner.runOnSelectedFiles",
+        "title": "Run Repomix on Selected Files"
+      },
+      {
+        "command": "repomixRunner.runOnOpenFiles",
+        "title": "Repomix Run On Open Files",
+        "description": "Run repomix on the open files",
+        "icon": "assets/file.svg"
+      },
+      {
+        "command": "repomixRunner.openSettings",
+        "title": "Repomix Settings",
+        "description": "Open Repomix Runner settings",
+        "icon": "$(settings)"
+      },
+      {
+        "command": "repomixRunner.openOutput",
+        "title": "Repomix Output",
+        "description": "Open Repomix Runner output channel",
+        "icon": "$(output)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "repomixRunner.run",
+          "title": "Repomix Run",
+          "group": "navigation@2",
+          "when": "view =~ /explorer/"
+        },
+        {
+          "command": "repomixRunner.runOnOpenFiles",
+          "title": "Repomix On Open Files",
+          "group": "navigation@1",
+          "when": "view =~ /explorer/"
+        },
+        {
+          "command": "repomixRunner.refreshBundles",
+          "when": "view == repomixBundles",
+          "group": "navigation"
+        },
+        {
+          "command": "repomixRunner.manageBundles",
+          "when": "view == repomixBundles",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "repomixRunner.runBundle",
+          "when": "viewItem == bundle",
+          "group": "inline"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "repomixRunner.run",
+          "when": "explorerResourceIsFolder",
+          "group": "navigation@1"
+        },
+        {
+          "command": "repomixRunner.runOnSelectedFiles",
+          "when": "explorerResourceIsFolder || resourceLangId",
+          "group": "repomix"
+        },
+        {
+          "when": "explorerResourceIsFolder || resourceLangId",
+          "command": "repomixRunner.saveBundle",
+          "group": "repomix@1"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "@types/sinon": "^17.0.3",
+    "@types/vscode": "^1.93.0",
+    "@typescript-eslint/eslint-plugin": "^8.17.0",
+    "@typescript-eslint/parser": "^8.17.0",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1",
+    "eslint": "^9.16.0",
+    "globby": "^14.0.2",
+    "sinon": "^19.0.2",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "tiktoken": "^1.0.18",
+    "zod": "^3.24.1"
+  },
+  "__metadata": {
+    "size": 944254177
+  }
 }

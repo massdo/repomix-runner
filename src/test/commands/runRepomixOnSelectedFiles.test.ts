@@ -45,7 +45,7 @@ suite('runRepomixOnSelectedFiles', () => {
 
     assert.strictEqual(getCwdStub.calledOnce, true);
     assert.strictEqual(runRepomixStub.calledOnce, true);
-    
+
     sinon.assert.calledWith(runRepomixStub, mockCwd, mockTempDir, {
       ...defaultRunRepomixDeps,
       mergeConfigOverride: { include: ['file1.ts', 'file2.ts'] },
@@ -58,10 +58,7 @@ suite('runRepomixOnSelectedFiles', () => {
 
     await runRepomixOnSelectedFiles([]);
 
-    sinon.assert.calledWith(
-      showTempNotificationStub,
-      'No files selected to run this command! :)'
-    );
+    sinon.assert.calledWith(showTempNotificationStub, 'No files selected to run this command! :)');
     sinon.assert.calledWith(loggerInfoStub, 'No files selected');
     assert.strictEqual(runRepomixStub.called, false);
   });

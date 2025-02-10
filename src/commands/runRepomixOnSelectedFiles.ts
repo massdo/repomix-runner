@@ -9,7 +9,7 @@ import * as path from 'path';
 
 export async function runRepomixOnSelectedFiles(uris: vscode.Uri[]) {
   const cwd = getCwd();
-  
+
   if (!uris || uris.length === 0) {
     logger.both.info('No files selected');
     showTempNotification('No files selected to run this command! :)');
@@ -19,9 +19,9 @@ export async function runRepomixOnSelectedFiles(uris: vscode.Uri[]) {
   const selectedFiles = uris.map(uri => path.relative(cwd, uri.fsPath));
 
   logger.both.info(`Running repomix on selected files: ${selectedFiles.join(', ')}`);
-  
+
   const overrideConfig = { include: selectedFiles };
-  
+
   runRepomix(cwd, tempDirManager.getTempDir(), {
     ...defaultRunRepomixDeps,
     mergeConfigOverride: overrideConfig,

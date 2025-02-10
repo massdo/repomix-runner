@@ -14,7 +14,9 @@ export async function manageBundles() {
     const bundleNames = Object.keys(metadata.bundles);
 
     if (bundleNames.length === 0) {
-      showTempNotification('No bundles found. Create a bundle first by selecting files and using "Save as Bundle".');
+      showTempNotification(
+        'No bundles found. Create a bundle first by selecting files and using "Save as Bundle".'
+      );
       return;
     }
 
@@ -27,27 +29,29 @@ export async function manageBundles() {
           description: bundle.description || '',
           detail: `${bundle.files.length} files • ${bundle.tags.join(', ')}`,
           bundle: bundle,
-          action: 'view'
+          action: 'view',
         },
         {
           label: `  ✏️ Edit "${name}"`,
           bundle: bundle,
-          action: 'edit'
+          action: 'edit',
         },
         {
           label: `  🗑️ Delete "${name}"`,
           bundle: bundle,
-          action: 'delete'
-        }
+          action: 'delete',
+        },
       ];
     });
 
     const selected = await vscode.window.showQuickPick(items, {
       placeHolder: 'Select a bundle to manage',
-      title: 'Manage Repomix Bundles'
+      title: 'Manage Repomix Bundles',
     });
 
-    if (!selected) {return;}
+    if (!selected) {
+      return;
+    }
 
     switch (selected.action) {
       case 'view':
@@ -60,7 +64,6 @@ export async function manageBundles() {
         await deleteBundle(bundleManager, selected.bundle);
         break;
     }
-
   } catch (error) {
     logger.both.error('Failed to manage bundles:', error);
     vscode.window.showErrorMessage(`Failed to manage bundles: ${error}`);
@@ -81,7 +84,7 @@ ${bundle.files.map(file => `- ${file}`).join('\n')}
 
   const doc = await vscode.workspace.openTextDocument({
     content,
-    language: 'markdown'
+    language: 'markdown',
   });
   await vscode.window.showTextDocument(doc);
 }
@@ -91,56 +94,70 @@ async function editBundle(bundleManager: BundleManager, bundle: Bundle) {
   const newName = await vscode.window.showInputBox({
     prompt: 'Enter new name for bundle',
     value: bundle.name,
-    validateInput: (value) => {
-      if (!value) {return 'Bundle name is required';}
+    validateInput: value => {
+      if (!value) {
+        return 'Bundle name is required';
+      }
       if (!/^[a-zA-Z0-9-_]+$/.test(value)) {
         return 'Bundle name can only contain letters, numbers, hyphens, and underscores';
       }
       return null;
-    }
+    },
   });
-  if (!newName) {return;}
+  if (!newName) {
+    return;
+  }
 
   // Edit description
   const newDescription = await vscode.window.showInputBox({
     prompt: 'Enter new description',
-    value: bundle.description
+    value: bundle.description,
   });
-  if (newDescription === undefined) {return;}
+  if (newDescription === undefined) {
+    return;
+  }
 
   // Edit tags
   const newTags = await vscode.window.showInputBox({
     prompt: 'Enter new tags (comma-separated)',
-    value: bundle.tags.join(', ')
+    value: bundle.tags.join(', '),
   });
-  if (newTags === undefined) {return;}
+  if (newTags === undefined) {
+    return;
+  }
 
   const updatedBundle: Bundle = {
     ...bundle,
     name: newName,
     description: newDescription || undefined,
-    tags: newTags.split(',').map(tag => tag.trim()).filter(tag => tag),
+    tags: newTags
+      .split(',')
+      .map(tag => tag.trim())
+      .filter(tag => tag),
   };
 
   await bundleManager.saveBundle(updatedBundle);
   if (bundle.name !== newName) {
     await bundleManager.deleteBundle(bundle.name);
   }
-  
+
   showTempNotification(`Bundle "${newName}" updated successfully`);
 }
 
 async function deleteBundle(bundleManager: BundleManager, bundle: Bundle) {
   const confirm = await vscode.window.showWarningMessage(
     `Are you sure you want to delete bundle "${bundle.name}"?`,
-    'Yes', 'No'
+    'Yes',
+    'No'
   );
 
-  if (confirm !== 'Yes') {return;}
+  if (confirm !== 'Yes') {
+    return;
+  }
 
   await bundleManager.deleteBundle(bundle.name);
   showTempNotification(`Bundle "${bundle.name}" deleted successfully`);
-  
+
   // Refresh the bundle tree view
   vscode.commands.executeCommand('repomixRunner.refreshBundles');
 }

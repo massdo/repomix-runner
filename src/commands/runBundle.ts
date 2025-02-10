@@ -14,7 +14,9 @@ export async function runBundle() {
     const bundleNames = Object.keys(metadata.bundles);
 
     if (bundleNames.length === 0) {
-      showTempNotification('No bundles found. Create a bundle first by selecting files and using "Save as Bundle".');
+      showTempNotification(
+        'No bundles found. Create a bundle first by selecting files and using "Save as Bundle".'
+      );
       return;
     }
 
@@ -24,25 +26,27 @@ export async function runBundle() {
         label: name,
         description: bundle.description || '',
         detail: `${bundle.files.length} files • ${bundle.tags.join(', ')}`,
-        bundle: bundle
+        bundle: bundle,
       };
     });
 
     const selected = await vscode.window.showQuickPick(items, {
       placeHolder: 'Select a bundle to run',
-      title: 'Run Repomix Bundle'
+      title: 'Run Repomix Bundle',
     });
 
-    if (!selected) return;
+    if (!selected) {
+      return;
+    }
 
     const updatedBundle = {
       ...selected.bundle,
-      lastUsed: new Date().toISOString()
+      lastUsed: new Date().toISOString(),
     };
     await bundleManager.saveBundle(updatedBundle);
 
     // Convert file paths to URIs
-    const uris = selected.bundle.files.map(filePath => 
+    const uris = selected.bundle.files.map(filePath =>
       vscode.Uri.file(vscode.Uri.joinPath(vscode.Uri.file(cwd), filePath).fsPath)
     );
 
@@ -58,15 +62,20 @@ export async function runBundle() {
 
     if (missingFiles.length > 0) {
       const proceed = await vscode.window.showWarningMessage(
-        `Some files in this bundle no longer exist:\n${missingFiles.join('\n')}\n\nDo you want to proceed with the remaining files?`,
-        'Yes', 'No'
+        `Some files in this bundle no longer exist:\n${missingFiles.join(
+          '\n'
+        )}\n\nDo you want to proceed with the remaining files?`,
+        'Yes',
+        'No'
       );
-      if (proceed !== 'Yes') return;
+      if (proceed !== 'Yes') {
+        return;
+      }
     }
 
     // Filter out missing files
     const validUris = uris.filter(uri => !missingFiles.includes(uri.fsPath));
-    
+
     if (validUris.length === 0) {
       showTempNotification('No valid files remaining in bundle.');
       return;
@@ -74,7 +83,6 @@ export async function runBundle() {
 
     // Run Repomix on the bundle files
     await runRepomixOnSelectedFiles(validUris);
-
   } catch (error) {
     logger.both.error('Failed to run bundle:', error);
     vscode.window.showErrorMessage(`Failed to run bundle: ${error}`);

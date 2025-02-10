@@ -1,4 +1,3 @@
-import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import { Bundle, BundleMetadata } from './types';
@@ -16,7 +15,7 @@ export class BundleManager {
   async initialize(): Promise<void> {
     try {
       await fs.mkdir(this.repomixDir, { recursive: true });
-      
+
       try {
         await fs.access(this.bundlesFile);
       } catch {

@@ -20,8 +20,10 @@ export async function saveBundle(uris: vscode.Uri[]) {
   const bundleName = await vscode.window.showInputBox({
     prompt: 'Enter a name for this bundle',
     placeHolder: 'e.g., authentication',
-    validateInput: (value) => {
-      if (!value) {return 'Bundle name is required';}
+    validateInput: value => {
+      if (!value) {
+        return 'Bundle name is required';
+      }
       if (!/^[a-zA-Z0-9-_]+$/.test(value)) {
         return 'Bundle name can only contain letters, numbers, hyphens, and underscores';
       }
@@ -29,7 +31,9 @@ export async function saveBundle(uris: vscode.Uri[]) {
     },
   });
 
-  if (!bundleName) {return;}
+  if (!bundleName) {
+    return;
+  }
 
   // Optional description
   const description = await vscode.window.showInputBox({
