@@ -48,7 +48,7 @@ export function activate(context: vscode.ExtensionContext) {
     openSettingsCommand, 
     openOutputCommand,
     runRepomixOnOpenFilesCommand,
-    runRepomixOnSelectedFilesCommand  // Add the new command
+    runRepomixOnSelectedFilesCommand
   );
 }
 

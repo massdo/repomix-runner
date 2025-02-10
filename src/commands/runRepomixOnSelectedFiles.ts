@@ -16,7 +16,6 @@ export async function runRepomixOnSelectedFiles(uris: vscode.Uri[]) {
     return;
   }
 
-  // Convert URIs to relative paths
   const selectedFiles = uris.map(uri => path.relative(cwd, uri.fsPath));
 
   logger.both.info(`Running repomix on selected files: ${selectedFiles.join(', ')}`);
