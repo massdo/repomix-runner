@@ -214,6 +214,10 @@
         "icon": "assets/repomix-logo.svg"
       },
       {
+        "command": "repomixRunner.runOnSelectedFiles",
+        "title": "Run Repomix on Selected Files"
+      },
+      {
         "command": "repomixRunner.runOnOpenFiles",
         "title": "Repomix Run On Open Files",
         "description": "Run repomix on the open files",
@@ -251,6 +255,11 @@
         {
           "command": "repomixRunner.run",
           "when": "explorerResourceIsFolder",
+          "group": "navigation@1"
+        },
+        {
+          "command": "repomixRunner.runOnSelectedFiles",
+          "when": "explorerResourceIsFolder || resourceLangId",
           "group": "repomix"
         }
       ]
