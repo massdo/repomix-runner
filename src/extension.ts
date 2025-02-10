@@ -6,6 +6,10 @@ import { runRepomixOnOpenFiles } from './commands/runRepomixOnOpenFiles';
 import { getCwd } from './config/getCwd';
 import { tempDirManager } from './core/files/tempDirManager';
 import { runRepomixOnSelectedFiles } from './commands/runRepomixOnSelectedFiles';
+import { saveBundle } from './commands/saveBundle';
+import { runBundle } from './commands/runBundle';
+import { manageBundles } from './commands/manageBundles';
+import { BundleTreeProvider } from './core/bundles/bundleTreeProvider';
 
 export function activate(context: vscode.ExtensionContext) {
   const runRepomixCommand = vscode.commands.registerCommand(
@@ -31,7 +35,10 @@ export function activate(context: vscode.ExtensionContext) {
     openSettings
   );
 
-  const openOutputCommand = vscode.commands.registerCommand('repomixRunner.openOutput', openOutput);
+  const openOutputCommand = vscode.commands.registerCommand(
+    'repomixRunner.openOutput', 
+    openOutput
+  );
 
   const runRepomixOnSelectedFilesCommand = vscode.commands.registerCommand(
     'repomixRunner.runOnSelectedFiles',
@@ -43,12 +50,48 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  const saveBundleCommand = vscode.commands.registerCommand(
+    'repomixRunner.saveBundle',
+    (uri: vscode.Uri, uris: vscode.Uri[]) => {
+      const selectedUris = uris || (uri ? [uri] : []);
+      saveBundle(selectedUris);
+    }
+  );
+
+  const runBundleCommand = vscode.commands.registerCommand(
+    'repomixRunner.runBundle',
+    runBundle
+  );
+
+  const manageBundlesCommand = vscode.commands.registerCommand(
+    'repomixRunner.manageBundles',
+    manageBundles
+  );
+
+  // Create and register the bundle tree view
+  const bundleTreeProvider = new BundleTreeProvider(getCwd());
+  const bundleTreeView = vscode.window.createTreeView('repomixBundles', {
+    treeDataProvider: bundleTreeProvider,
+    showCollapseAll: true
+  });
+
   context.subscriptions.push(
     runRepomixCommand,
     openSettingsCommand, 
     openOutputCommand,
     runRepomixOnOpenFilesCommand,
-    runRepomixOnSelectedFilesCommand
+    runRepomixOnSelectedFilesCommand,
+    saveBundleCommand,
+    runBundleCommand,
+    manageBundlesCommand,
+    bundleTreeView
+  );
+
+  // Register bundle refresh command
+  context.subscriptions.push(
+    vscode.commands.registerCommand('repomixRunner.refreshBundles', () => {
+      bundleTreeProvider.refresh();
+    })
   );
 }
 
