@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import { logger } from '../../shared/logger';
 import { Bundle, BundleMetadata } from './types';
 import { showTempNotification } from '../../shared/showTempNotification';
+import { bundleTreeProvider } from './bundleTreeProvider';
 
 export class BundleManager {
   private readonly repomixDir: string;
@@ -46,6 +47,7 @@ export class BundleManager {
       const metadata = await this.getAllBundles();
       metadata.bundles[bundle.name] = bundle;
       await fs.writeFile(this.bundlesFile, JSON.stringify(metadata, null, 2));
+      bundleTreeProvider.refresh();
     } catch (error) {
       logger.both.error('Failed to save bundle:', error);
       throw error;
@@ -57,6 +59,7 @@ export class BundleManager {
       const metadata = await this.getAllBundles();
       delete metadata.bundles[bundleName];
       await fs.writeFile(this.bundlesFile, JSON.stringify(metadata, null, 2));
+      bundleTreeProvider.refresh();
     } catch (error) {
       logger.both.error('Failed to delete bundle:', error);
       throw error;

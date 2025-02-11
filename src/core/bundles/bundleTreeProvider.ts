@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { Bundle } from './types';
 import { BundleManager } from './bundleManager';
+import { getCwd } from '../../config/getCwd';
 
 class BundleTreeItem extends vscode.TreeItem implements BundleTreeItem {
   constructor(
@@ -27,7 +28,7 @@ class BundleTreeItem extends vscode.TreeItem implements BundleTreeItem {
   }
 }
 
-export class BundleTreeProvider implements vscode.TreeDataProvider<BundleTreeItem> {
+class BundleTreeProvider implements vscode.TreeDataProvider<BundleTreeItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<BundleTreeItem | undefined | null | void> =
     new vscode.EventEmitter<BundleTreeItem | undefined | null | void>();
 
@@ -71,3 +72,5 @@ export class BundleTreeProvider implements vscode.TreeDataProvider<BundleTreeIte
     return [];
   }
 }
+
+export const bundleTreeProvider = new BundleTreeProvider(getCwd());

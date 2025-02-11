@@ -9,7 +9,7 @@ import { runRepomixOnSelectedFiles } from './commands/runRepomixOnSelectedFiles'
 import { saveBundle } from './commands/saveBundle';
 import { runBundle } from './commands/runBundle';
 import { manageBundles } from './commands/manageBundles';
-import { BundleTreeProvider } from './core/bundles/bundleTreeProvider';
+import { bundleTreeProvider } from './core/bundles/bundleTreeProvider';
 import { BundleManager } from './core/bundles/bundleManager';
 import { BundleTreeItem } from './core/bundles/types';
 
@@ -101,7 +101,6 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   // Create and register the bundle tree view
-  const bundleTreeProvider = new BundleTreeProvider(getCwd());
   const bundleTreeView = vscode.window.createTreeView('repomixBundles', {
     treeDataProvider: bundleTreeProvider,
     showCollapseAll: true,
