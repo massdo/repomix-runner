@@ -4,6 +4,7 @@ import { getCwd } from '../config/getCwd';
 import { Bundle } from '../core/bundles/types';
 import { logger } from '../shared/logger';
 import { showTempNotification } from '../shared/showTempNotification';
+import { deleteBundle } from './deleteBundle';
 
 export async function manageBundles() {
   const cwd = getCwd();
@@ -142,22 +143,4 @@ async function editBundle(bundleManager: BundleManager, bundle: Bundle) {
   }
 
   showTempNotification(`Bundle "${newName}" updated successfully`);
-}
-
-async function deleteBundle(bundleManager: BundleManager, bundle: Bundle) {
-  const confirm = await vscode.window.showWarningMessage(
-    `Are you sure you want to delete bundle "${bundle.name}"?`,
-    'Yes',
-    'No'
-  );
-
-  if (confirm !== 'Yes') {
-    return;
-  }
-
-  await bundleManager.deleteBundle(bundle.name);
-  showTempNotification(`Bundle "${bundle.name}" deleted successfully`);
-
-  // Refresh the bundle tree view
-  vscode.commands.executeCommand('repomixRunner.refreshBundles');
 }

@@ -231,6 +231,12 @@
         "icon": "$(play)"
       },
       {
+        "command": "repomixRunner.deleteBundle",
+        "title": "Repomix: Delete Bundle",
+        "icon": "$(trash)",
+        "enablement": "view == repomixBundles"
+      },
+      {
         "command": "repomixRunner.manageBundles",
         "title": "Repomix: Manage Bundles",
         "icon": "$(gear)"
@@ -292,6 +298,11 @@
       "view/item/context": [
         {
           "command": "repomixRunner.runBundle",
+          "when": "viewItem == bundle",
+          "group": "inline"
+        },
+        {
+          "command": "repomixRunner.deleteBundle",
           "when": "viewItem == bundle",
           "group": "inline"
         }

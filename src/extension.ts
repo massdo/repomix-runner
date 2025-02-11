@@ -12,6 +12,7 @@ import { manageBundles } from './commands/manageBundles';
 import { bundleTreeProvider } from './core/bundles/bundleTreeProvider';
 import { BundleManager } from './core/bundles/bundleManager';
 import { BundleTreeItem } from './core/bundles/types';
+import { deleteBundle } from './commands/deleteBundle';
 
 export function activate(context: vscode.ExtensionContext) {
   const runRepomixCommand = vscode.commands.registerCommand(
@@ -95,6 +96,14 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  const deleteBundleCommand = vscode.commands.registerCommand(
+    'repomixRunner.deleteBundle',
+    async (param: BundleTreeItem) => {
+      const bundleManager = new BundleManager(getCwd());
+      await deleteBundle(bundleManager, param.bundle);
+    }
+  );
+
   const manageBundlesCommand = vscode.commands.registerCommand(
     'repomixRunner.manageBundles',
     manageBundles
@@ -115,6 +124,7 @@ export function activate(context: vscode.ExtensionContext) {
     saveBundleCommand,
     runBundleCommand,
     manageBundlesCommand,
+    deleteBundleCommand,
     bundleTreeView
   );
 
