@@ -207,42 +207,33 @@
       }
     ],
     "views": {
-      "repomix-bundles": [
+      "explorer": [
         {
           "id": "repomixBundles",
-          "name": "Bundles",
-          "icon": "$(package)",
-          "contextualTitle": "Repomix Bundles"
-        }
-      ]
-    },
-    "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "repomix-bundles",
-          "title": "Repomix Bundles",
-          "icon": "$(package)"
+          "name": "REPOMIX BUNDLES"
         }
       ]
     },
     "commands": [
       {
         "command": "repomixRunner.run",
-        "title": "Repomix Run",
+        "title": "Repomix: Run",
         "description": "Run repomix on the root folder of your project",
         "icon": "assets/repomix-logo.svg"
       },
       {
         "command": "repomixRunner.saveBundle",
-        "title": "Repomix: Save Selected Files as Bundle"
+        "title": "Repomix: Save Selection as Bundle"
       },
       {
         "command": "repomixRunner.runBundle",
-        "title": "Repomix: Run Bundle"
+        "title": "Repomix: Run Bundle",
+        "icon": "$(play)"
       },
       {
         "command": "repomixRunner.manageBundles",
-        "title": "Repomix: Manage Bundles"
+        "title": "Repomix: Manage Bundles",
+        "icon": "$(gear)"
       },
       {
         "command": "repomixRunner.refreshBundles",
@@ -251,23 +242,23 @@
       },
       {
         "command": "repomixRunner.runOnSelectedFiles",
-        "title": "Run Repomix on Selected Files"
+        "title": "Repomix: Run on Selection"
       },
       {
         "command": "repomixRunner.runOnOpenFiles",
-        "title": "Repomix Run On Open Files",
+        "title": "Repomix: Run On Open Files",
         "description": "Run repomix on the open files",
         "icon": "assets/file.svg"
       },
       {
         "command": "repomixRunner.openSettings",
-        "title": "Repomix Settings",
+        "title": "Repomix: Settings",
         "description": "Open Repomix Runner settings",
         "icon": "$(settings)"
       },
       {
         "command": "repomixRunner.openOutput",
-        "title": "Repomix Output",
+        "title": "Repomix: Output",
         "description": "Open Repomix Runner output channel",
         "icon": "$(output)"
       }
@@ -294,7 +285,8 @@
         {
           "command": "repomixRunner.manageBundles",
           "when": "view == repomixBundles",
-          "group": "navigation"
+          "group": "navigation",
+          "icon": "$(gear)"
         }
       ],
       "view/item/context": [
@@ -308,17 +300,17 @@
         {
           "command": "repomixRunner.run",
           "when": "explorerResourceIsFolder",
-          "group": "navigation@1"
+          "group": "repomix"
         },
         {
           "command": "repomixRunner.runOnSelectedFiles",
           "when": "explorerResourceIsFolder || resourceLangId",
-          "group": "repomix"
+          "group": "repomix@1"
         },
         {
           "when": "explorerResourceIsFolder || resourceLangId",
           "command": "repomixRunner.saveBundle",
-          "group": "repomix@1"
+          "group": "repomix@2"
         }
       ]
     }

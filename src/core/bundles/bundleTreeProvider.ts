@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { Bundle } from './types';
 import { BundleManager } from './bundleManager';
 
-class BundleTreeItem extends vscode.TreeItem {
+class BundleTreeItem extends vscode.TreeItem implements BundleTreeItem {
   constructor(
     public readonly bundle: Bundle,
     public readonly type: 'bundle' | 'file',

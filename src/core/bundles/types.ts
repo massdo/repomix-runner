@@ -1,3 +1,5 @@
+import * as vscode from 'vscode';
+
 export interface Bundle {
   name: string;
   description?: string;
@@ -12,3 +14,9 @@ export interface BundleMetadata {
     [key: string]: Bundle;
   };
 }
+
+export type BundleTreeItem = vscode.TreeItem & {
+  readonly bundle: Bundle;
+  readonly type: 'bundle' | 'file';
+  readonly filePath?: string;
+};

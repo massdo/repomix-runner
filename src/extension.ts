@@ -10,6 +10,8 @@ import { saveBundle } from './commands/saveBundle';
 import { runBundle } from './commands/runBundle';
 import { manageBundles } from './commands/manageBundles';
 import { BundleTreeProvider } from './core/bundles/bundleTreeProvider';
+import { BundleManager } from './core/bundles/bundleManager';
+import { BundleTreeItem } from './core/bundles/types';
 
 export function activate(context: vscode.ExtensionContext) {
   const runRepomixCommand = vscode.commands.registerCommand(
@@ -75,7 +77,23 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  const runBundleCommand = vscode.commands.registerCommand('repomixRunner.runBundle', runBundle);
+  const runBundleCommand = vscode.commands.registerCommand(
+    'repomixRunner.runBundle',
+    async (param?: BundleTreeItem) => {
+      const cwd = getCwd();
+      const bundleManager = new BundleManager(cwd);
+
+      if (!param) {
+        const selectedBundle = await bundleManager.selectBundle();
+        if (!selectedBundle) {
+          return;
+        }
+        return runBundle(selectedBundle);
+      }
+
+      return runBundle(param.bundle);
+    }
+  );
 
   const manageBundlesCommand = vscode.commands.registerCommand(
     'repomixRunner.manageBundles',

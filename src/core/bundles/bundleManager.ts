@@ -1,7 +1,9 @@
-import * as path from 'path';
 import * as fs from 'fs/promises';
-import { Bundle, BundleMetadata } from './types';
+import * as path from 'path';
+import * as vscode from 'vscode';
 import { logger } from '../../shared/logger';
+import { Bundle, BundleMetadata } from './types';
+import { showTempNotification } from '../../shared/showTempNotification';
 
 export class BundleManager {
   private readonly repomixDir: string;
@@ -59,5 +61,38 @@ export class BundleManager {
       logger.both.error('Failed to delete bundle:', error);
       throw error;
     }
+  }
+
+  async selectBundle(): Promise<Bundle | undefined> {
+    const metadata = await this.getAllBundles();
+    const bundleNames = Object.keys(metadata.bundles);
+
+    if (bundleNames.length === 0) {
+      showTempNotification(
+        'No bundles found. Create a bundle first by selecting files and using "Save as Bundle".'
+      );
+      return undefined;
+    }
+
+    const items = bundleNames.map(name => {
+      const bundle = metadata.bundles[name];
+      return {
+        label: name,
+        description: bundle.description || '',
+        detail: `${bundle.files.length} files • ${bundle.tags.join(', ')}`,
+        bundle: bundle,
+      };
+    });
+
+    const selected = await vscode.window.showQuickPick(items, {
+      placeHolder: 'Select a bundle to run',
+      title: 'Run Repomix Bundle',
+    });
+
+    if (!selected) {
+      return undefined;
+    }
+
+    return selected.bundle;
   }
 }
