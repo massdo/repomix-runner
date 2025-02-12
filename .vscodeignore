@@ -1,6 +1,9 @@
 .vscode/**
 .vscode-test/**
 src/test
+out/test
+.repomix
+.repomixignore
 .gitignore
 .yarnrc
 vsc-extension-quickstart.md
