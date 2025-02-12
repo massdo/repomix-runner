@@ -251,7 +251,7 @@
         {
           "command": "repomixRunner.run",
           "when": "explorerResourceIsFolder",
-          "group": "navigation@1"
+          "group": "repomix"
         }
       ]
     }
