@@ -3,7 +3,7 @@
   "name": "repomix-runner",
   "displayName": "Repomix Runner",
   "icon": "assets/repomix-logo.png",
-  "description": "Run Repomix anywhere in your AppTree. The output is copied to clipboard. No more output file to delete.",
+  "description": "Easily bundle files into a single output for AI processing.",
   "repository": {
     "type": "git",
     "url": "https://github.com/massdo/repomix-runner.git"

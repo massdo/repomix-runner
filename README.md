@@ -8,29 +8,31 @@
 [![Installs](https://img.shields.io/visual-studio-marketplace/i/DorianMassoulier.repomix-runner)](https://marketplace.visualstudio.com/items?itemName=DorianMassoulier.repomix-runner)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Repomix Runner is a VS Code extension that runs the [Repomix](https://github.com/yamadashy/repomix) command line tool.
+Repomix Runner is a VSCode extension that allows you to easily bundle files into a single output for AI processing. It uses the [Repomix](https://github.com/yamadashy/repomix) tool.
 
 ## ✨ Features
 
-- 📁 Run Repomix on any folder easily.
-- 🗑️ Optional output file cleanup. -> But you still have it in clipboard.
-- 🔄 Two copy modes: content or file. -> you can paste a whole file not just content.
-- 🛠️ easy settings in vscode and/or support a repomix.config.json file.
+- 📁 Pack your selection of files into a single output for AI processing.
+- 📦 Create reusable bundles for parts of your project you frequently package.
+- 📎 Two copy modes for clipboard: content or file. -> you can paste a whole file not just content.
+- 🗑️ Optional output file cleanup. -> But you still have it in clipboard! 😀
+- 🛠️ Easy settings in vscode and/or support a repomix.config.json file.
 
 ## 📖 Usage
 
-- To pack the whole project, click on the square icon <img src="assets/repomix-logo.png" alt="Repomix" width="20" height="auto" /> or run the `Repomix Run` command.
+With the **_REPOMIX_** custom view, all is in one place 🎉 :
 
-- To pack the open files, click on the files icon <img src="assets/file.png" alt="Repomix" width="20" height="auto" /> or run the `Repomix Run On Open Files` command.
+(keep in mind the output-file is also in your clipboard).
 
-- To pack a specific folder right-click on any folder in VS Code's explorer and select "Run Repomix" from the context menu.
+https://github.com/user-attachments/assets/d092ca93-c2c4-4475-a622-6359a49506b1
 
-<div style="display: flex; flex-wrap: wrap; justify-content: start; align-items: start; gap: 10px; margin-bottom: 50px;">
-  <img src="assets/demo.png" alt="Repomix" width="400" height="auto" />
-  <img src="assets/open-files.png" alt="Repomix" width="400" height="auto" />
+<div align="center">
+  <video src="https://massdo.github.io/repomix-runner/assets/repomix-demo.mp4" type="video/mp4" controls controlsList="nodownload" allowfullscreen>
+    Your browser does not support the video tag.
+  </video>
 </div>
 
-And you can use the convenient commands to access settings and output ⬇️
+Or you can use the commands ⬇️
 
 ## ⚙️ Commands
 
@@ -38,6 +40,9 @@ Open the palette with `Cmd+Shift+P` or `Ctrl+Shift+P` then:
 
 - `Repomix Run` to run repomix on the root folder of your project
 - `Repomix Run On Open Files` to run repomix on the open files
+- `Repomix Run On Selection` to run repomix on the selected files or directories
+- `Repomix Run Bundle` to select a bundle to run
+- `Repomix Manage Bundles` to edit or delete your bundles
 - `Repomix Settings` for a quick access to the settings
 - `Repomix Output` to open the repomix output channel
 
@@ -50,39 +55,7 @@ Open the palette with `Cmd+Shift+P` or `Ctrl+Shift+P` then:
 
 ## 🛠️ Configuration
 
-We added 3 new Runner settings on top of repomix settings (output, include, ignore, security)
-
-#### Runner settings
-
-<div align="left">
-  <img src="assets/runner-settings.png" alt="Repomix" width="800" height="auto" />
-</div>
-
-#### Ouput settings
-
-<div align="left">
-  <img src="assets/output-settings.png" alt="Repomix" width="800" height="auto"/>
-</div>
-
-#### Include settings
-
-<div align="left">
-  <img src="assets/include-settings.png" alt="Repomix" width="800" height="auto" />
-</div>
-
-#### Ignore settings
-
-<div align="left">
-  <img src="assets/ignore-settings.png" alt="Repomix" width="800" height="auto" />
-</div>
-
-#### Security settings
-
-<div align="left">
-  <img src="assets/security-settings.png" alt="Repomix" width="800" height="auto" />
-</div>
-
-- you can also add a repomix.config.json file in your project root folder, it will **_override_** the settings in the extension. Except for the runner settings.
+- The extension support the repomix.config.json file in your project root folder, it will **_override_** the settings in the extension. Except for the runner settings.
 
 ## 📋 Requirements
 
@@ -104,5 +77,3 @@ Any feedback, issue or feature request is much appreciated !
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
 ---
-
-**Note**: This extension is not affiliated with or endorsed by Repomix.
