@@ -309,11 +309,6 @@
       ],
       "explorer/context": [
         {
-          "command": "repomixRunner.run",
-          "when": "explorerResourceIsFolder",
-          "group": "repomix"
-        },
-        {
           "command": "repomixRunner.runOnSelectedFiles",
           "when": "explorerResourceIsFolder || resourceLangId",
           "group": "repomix@1"
@@ -322,6 +317,12 @@
           "when": "explorerResourceIsFolder || resourceLangId",
           "command": "repomixRunner.saveBundle",
           "group": "repomix@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "repomixRunner.runOnSelectedFiles",
+          "when": "never"
         }
       ]
     }

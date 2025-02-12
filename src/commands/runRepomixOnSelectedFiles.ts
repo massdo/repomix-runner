@@ -18,11 +18,23 @@ export async function runRepomixOnSelectedFiles(uris: vscode.Uri[]) {
 
   const selectedFiles = uris.map(uri => path.relative(cwd, uri.fsPath));
 
+  let targetDir = cwd;
+
+  let isDirectory = false;
+
+  if (uris.length === 1 && !path.extname(uris[0].fsPath)) {
+    // we need to change the target dir to stick to the option "use target as output"
+    // if the selection is multiple then the output will be the cwd by default
+    // REFACTOR
+    isDirectory = true;
+    targetDir = uris[0].fsPath;
+  }
+
   logger.both.info(`Running repomix on selected files: ${selectedFiles.join(', ')}`);
 
-  const overrideConfig = { include: selectedFiles };
+  const overrideConfig = isDirectory ? {} : { include: selectedFiles };
 
-  runRepomix(cwd, tempDirManager.getTempDir(), {
+  runRepomix(targetDir, tempDirManager.getTempDir(), {
     ...defaultRunRepomixDeps,
     mergeConfigOverride: overrideConfig,
   });
