@@ -206,28 +206,65 @@
         }
       }
     ],
+    "views": {
+      "explorer": [
+        {
+          "id": "repomixBundles",
+          "name": "REPOMIX BUNDLES"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "repomixRunner.run",
-        "title": "Repomix Run",
+        "title": "Repomix: Run",
         "description": "Run repomix on the root folder of your project",
         "icon": "assets/repomix-logo.svg"
       },
       {
+        "command": "repomixRunner.saveBundle",
+        "title": "Repomix: Save Selection as Bundle"
+      },
+      {
+        "command": "repomixRunner.runBundle",
+        "title": "Repomix: Run Bundle",
+        "icon": "$(play)"
+      },
+      {
+        "command": "repomixRunner.deleteBundle",
+        "title": "Repomix: Delete Bundle",
+        "icon": "$(trash)",
+        "enablement": "view == repomixBundles"
+      },
+      {
+        "command": "repomixRunner.manageBundles",
+        "title": "Repomix: Manage Bundles",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "repomixRunner.refreshBundles",
+        "title": "Repomix: Refresh Bundles",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "repomixRunner.runOnSelectedFiles",
+        "title": "Repomix: Run on Selection"
+      },
+      {
         "command": "repomixRunner.runOnOpenFiles",
-        "title": "Repomix Run On Open Files",
+        "title": "Repomix: Run On Open Files",
         "description": "Run repomix on the open files",
         "icon": "assets/file.svg"
       },
       {
         "command": "repomixRunner.openSettings",
-        "title": "Repomix Settings",
+        "title": "Repomix: Settings",
         "description": "Open Repomix Runner settings",
         "icon": "$(settings)"
       },
       {
         "command": "repomixRunner.openOutput",
-        "title": "Repomix Output",
+        "title": "Repomix: Output",
         "description": "Open Repomix Runner output channel",
         "icon": "$(output)"
       }
@@ -245,13 +282,47 @@
           "title": "Repomix On Open Files",
           "group": "navigation@1",
           "when": "view =~ /explorer/"
+        },
+        {
+          "command": "repomixRunner.refreshBundles",
+          "when": "view == repomixBundles",
+          "group": "navigation"
+        },
+        {
+          "command": "repomixRunner.manageBundles",
+          "when": "view == repomixBundles",
+          "group": "navigation",
+          "icon": "$(gear)"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "repomixRunner.runBundle",
+          "when": "viewItem == bundle",
+          "group": "inline"
+        },
+        {
+          "command": "repomixRunner.deleteBundle",
+          "when": "viewItem == bundle",
+          "group": "inline"
         }
       ],
       "explorer/context": [
         {
-          "command": "repomixRunner.run",
-          "when": "explorerResourceIsFolder",
-          "group": "repomix"
+          "command": "repomixRunner.runOnSelectedFiles",
+          "when": "explorerResourceIsFolder || resourceLangId",
+          "group": "repomix@1"
+        },
+        {
+          "when": "explorerResourceIsFolder || resourceLangId",
+          "command": "repomixRunner.saveBundle",
+          "group": "repomix@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "repomixRunner.runOnSelectedFiles",
+          "when": "never"
         }
       ]
     }
@@ -281,5 +352,8 @@
   "dependencies": {
     "tiktoken": "^1.0.18",
     "zod": "^3.24.1"
+  },
+  "__metadata": {
+    "size": 944254177
   }
 }
