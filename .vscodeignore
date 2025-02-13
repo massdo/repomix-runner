@@ -1,5 +1,6 @@
 .vscode/**
 .vscode-test/**
+assets/repomix-demo.mp4
 src/test
 out/test
 .repomix
