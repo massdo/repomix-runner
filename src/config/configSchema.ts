@@ -28,6 +28,7 @@ export const repomixConfigBaseSchema = z.object({
       showLineNumbers: z.boolean().optional(),
       copyToClipboard: z.boolean().optional(),
       includeEmptyDirectories: z.boolean().optional(),
+      compress: z.boolean().optional(),
     })
     .optional(),
   include: z.array(z.string()).optional(),
@@ -67,6 +68,7 @@ export const repomixConfigDefaultSchema = z.object({
       showLineNumbers: z.boolean().default(false),
       copyToClipboard: z.boolean().default(false),
       includeEmptyDirectories: z.boolean().default(false),
+      compress: z.boolean().default(false),
     })
     .default({}),
   include: z.array(z.string()).default([]),

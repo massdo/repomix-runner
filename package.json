@@ -129,6 +129,12 @@
             "type": "boolean",
             "default": false,
             "description": "🔢 \n Show line numbers in output"
+          },
+          "repomix.output.compress": {
+            "order": 8,
+            "type": "boolean",
+            "default": false,
+            "description": "🧠 \n Perform intelligent code extraction, focusing on essential function and class signatures to reduce token count"
           }
         }
       },

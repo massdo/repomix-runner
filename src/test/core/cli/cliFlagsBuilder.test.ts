@@ -229,6 +229,15 @@ suite('CliFlagsBuilder', () => {
   //   assert.ok(flags.includes('--no-default-ignore'));
   // });
 
+  test('should add "--compress" flag when output.compress is true', () => {
+    const config: MergedConfig = {
+      ...baseConfig,
+      output: { ...baseConfig.output, compress: true },
+    };
+    const flags = cliFlagsBuilder(config);
+    assert.ok(flags.includes('--compress'));
+  });
+
   test('should combine all flags correctly', () => {
     const config: MergedConfig = {
       ...baseConfig,
@@ -243,6 +252,7 @@ suite('CliFlagsBuilder', () => {
         topFilesLength: 10,
         showLineNumbers: true,
         copyToClipboard: true,
+        compress: true,
       },
       include: ['*.ts', '*.js'],
       ignore: {
@@ -268,5 +278,6 @@ suite('CliFlagsBuilder', () => {
     assert.ok(flags.includes('--include "*.ts,*.js"'));
     assert.ok(flags.includes('--ignore "node_modules,dist"'));
     assert.ok(flags.includes('--no-security-check'));
+    assert.ok(flags.includes('--compress'));
   });
 });

@@ -122,6 +122,7 @@ suite('configLoader', () => {
           showLineNumbers: true,
           copyToClipboard: false,
           includeEmptyDirectories: false,
+          compress: false,
         },
         include: ['**/*'],
         ignore: {
@@ -251,6 +252,7 @@ suite('configLoader', () => {
           showLineNumbers: true,
           copyToClipboard: false,
           includeEmptyDirectories: false,
+          compress: false,
         },
         include: ['**/*'],
         ignore: {
@@ -274,6 +276,7 @@ suite('configLoader', () => {
           parsableStyle: true,
           instructionFilePath: 'instruction.txt',
           includeEmptyDirectories: true,
+          compress: true,
         },
         ignore: {
           useGitignore: false,
@@ -293,6 +296,7 @@ suite('configLoader', () => {
       assert.ok(merged.output.parsableStyle === true);
       assert.ok(merged.output.instructionFilePath === 'instruction.txt');
       assert.ok(merged.output.includeEmptyDirectories === true);
+      assert.ok(merged.output.compress === true);
       assert.ok(merged.ignore.useGitignore === false);
       assert.ok(merged.ignore.useDefaultPatterns === false);
       assert.ok(merged.tokenCount.encoding === 'gpt2');

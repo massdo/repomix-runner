@@ -36,6 +36,7 @@ suite('runRepomix', () => {
       showLineNumbers: false,
       copyToClipboard: false,
       includeEmptyDirectories: false,
+      compress: false,
     },
     include: [],
     ignore: { useGitignore: true, useDefaultPatterns: true, customPatterns: [] },

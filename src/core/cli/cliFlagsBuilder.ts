@@ -17,6 +17,7 @@ export const cliFlags = {
     copyToClipboard: '--copy',
     topFilesLength: '--top-files-len',
     includeEmptyDirectories: '--include-empty-directories',
+    compress: '--compress',
   },
   include: '--include',
   ignore: {
@@ -78,6 +79,9 @@ export function cliFlagsBuilder(config: MergedConfig, flags = cliFlags): string 
   }
   if (config.output.topFilesLength !== 5) {
     outputFlags.push(`${flags.output.topFilesLength} ${config.output.topFilesLength}`);
+  }
+  if (config.output.compress) {
+    outputFlags.push(flags.output.compress);
   }
   // Include
   if (config.include.length > 0) {
