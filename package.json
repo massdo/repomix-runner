@@ -273,6 +273,11 @@
         "title": "Repomix: Output",
         "description": "Open Repomix Runner output channel",
         "icon": "$(output)"
+      },
+      {
+        "command": "repomixRunner.removeFileFromBundle",
+        "title": "Remove from Bundle",
+        "icon": "$(trash)"
       }
     ],
     "menus": {
@@ -317,6 +322,11 @@
           "command": "repomixRunner.deleteBundle",
           "when": "viewItem == bundle",
           "group": "inline"
+        },
+        {
+          "command": "repomixRunner.removeFileFromBundle",
+          "when": "viewItem == bundleFile",
+          "group": "1_modification"
         }
       ],
       "explorer/context": [

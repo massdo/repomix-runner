@@ -13,8 +13,11 @@ import { bundleTreeProvider } from './core/bundles/bundleTreeProvider';
 import { BundleManager } from './core/bundles/bundleManager';
 import { BundleTreeItem } from './core/bundles/types';
 import { deleteBundle } from './commands/deleteBundle';
+import { removeFileFromBundle } from './commands/removeFileFromBundle';
 
 export function activate(context: vscode.ExtensionContext) {
+  const bundleManager = new BundleManager(getCwd());
+
   const runRepomixCommand = vscode.commands.registerCommand(
     'repomixRunner.run',
     (uri?: vscode.Uri) => {
@@ -81,9 +84,6 @@ export function activate(context: vscode.ExtensionContext) {
   const runBundleCommand = vscode.commands.registerCommand(
     'repomixRunner.runBundle',
     async (param?: BundleTreeItem) => {
-      const cwd = getCwd();
-      const bundleManager = new BundleManager(cwd);
-
       if (!param) {
         const selectedBundle = await bundleManager.selectBundle();
         if (!selectedBundle) {
@@ -91,7 +91,6 @@ export function activate(context: vscode.ExtensionContext) {
         }
         return runBundle(selectedBundle);
       }
-
       return runBundle(param.bundle);
     }
   );
@@ -99,7 +98,6 @@ export function activate(context: vscode.ExtensionContext) {
   const deleteBundleCommand = vscode.commands.registerCommand(
     'repomixRunner.deleteBundle',
     async (param: BundleTreeItem) => {
-      const bundleManager = new BundleManager(getCwd());
       await deleteBundle(bundleManager, param.bundle);
     }
   );
@@ -107,6 +105,13 @@ export function activate(context: vscode.ExtensionContext) {
   const manageBundlesCommand = vscode.commands.registerCommand(
     'repomixRunner.manageBundles',
     manageBundles
+  );
+
+  const removeFileFromBundleCommand = vscode.commands.registerCommand(
+    'repomixRunner.removeFileFromBundle',
+    async (item: BundleTreeItem) => {
+      await removeFileFromBundle(bundleManager, item);
+    }
   );
 
   // Create and register the bundle tree view
@@ -125,6 +130,7 @@ export function activate(context: vscode.ExtensionContext) {
     runBundleCommand,
     manageBundlesCommand,
     deleteBundleCommand,
+    removeFileFromBundleCommand,
     bundleTreeView
   );
 
