@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { Bundle } from './types';
 import { BundleManager } from './bundleManager';
 import { getCwd } from '../../config/getCwd';
+import * as path from 'path';
 
 class BundleTreeItem extends vscode.TreeItem implements BundleTreeItem {
   constructor(
@@ -22,7 +23,11 @@ class BundleTreeItem extends vscode.TreeItem implements BundleTreeItem {
       this.tooltip = bundle.description || bundle.name;
       this.contextValue = 'bundle';
     } else {
-      this.iconPath = new vscode.ThemeIcon('file');
+      if (path.extname(filePath!) === '') {
+        this.iconPath = new vscode.ThemeIcon('folder');
+      } else {
+        this.iconPath = new vscode.ThemeIcon('file');
+      }
       this.contextValue = 'bundleFile';
     }
   }
