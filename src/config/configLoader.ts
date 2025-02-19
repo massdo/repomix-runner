@@ -74,11 +74,13 @@ export function mergeConfigs(
   const baseConfig: RepomixRunnerConfigDefault = defaultConfig;
 
   let outputFilePath =
+    overrideConfig?.output?.filePath ||
     configFromRepomixFile?.output?.filePath ||
     configFromRepomixRunnerVscode.output.filePath ||
     baseConfig.output.filePath;
 
   const outputStyle =
+    overrideConfig?.output?.style ||
     configFromRepomixFile?.output?.style ||
     configFromRepomixRunnerVscode.output.style ||
     baseConfig.output.style;
@@ -98,10 +100,9 @@ export function mergeConfigs(
       ...configFromRepomixRunnerVscode.output,
       ...configFromRepomixFile?.output,
       ...overrideConfig?.output,
-      filePath:
-        overrideConfig?.output?.filePath || configFromRepomixRunnerVscode.runner.useTargetAsOutput
-          ? path.resolve(targetDir, outputFilePath)
-          : path.resolve(cwd, outputFilePath),
+      filePath: configFromRepomixRunnerVscode.runner.useTargetAsOutput
+        ? path.resolve(targetDir, outputFilePath)
+        : path.resolve(cwd, outputFilePath),
     },
     include:
       // MEMO on cumule  dans repomix -> issue ?

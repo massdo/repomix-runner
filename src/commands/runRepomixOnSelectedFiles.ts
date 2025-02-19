@@ -6,8 +6,12 @@ import { defaultRunRepomixDeps } from './runRepomix';
 import { logger } from '../shared/logger';
 import { showTempNotification } from '../shared/showTempNotification';
 import * as path from 'path';
+import { RepomixConfigFile } from '../config/configSchema';
 
-export async function runRepomixOnSelectedFiles(uris: vscode.Uri[]) {
+export async function runRepomixOnSelectedFiles(
+  uris: vscode.Uri[],
+  overrideConfig: RepomixConfigFile = {}
+) {
   const cwd = getCwd();
 
   if (!uris || uris.length === 0) {
@@ -32,10 +36,14 @@ export async function runRepomixOnSelectedFiles(uris: vscode.Uri[]) {
 
   logger.both.info(`Running repomix on selected files: ${selectedFiles.join(', ')}`);
 
-  const overrideConfig = isDirectory ? {} : { include: selectedFiles };
+  // TODO add test for config merging
+  const finalOverrideConfig = {
+    ...overrideConfig,
+    ...(isDirectory ? {} : { include: selectedFiles }),
+  };
 
   runRepomix(targetDir, tempDirManager.getTempDir(), {
     ...defaultRunRepomixDeps,
-    mergeConfigOverride: overrideConfig,
+    mergeConfigOverride: finalOverrideConfig,
   });
 }

@@ -109,6 +109,7 @@ export const repomixRunnerConfigBaseSchema = z
       keepOutputFile: z.boolean(),
       copyMode: runnerCopyModeSchema,
       useTargetAsOutput: z.boolean(),
+      useBundleNameAsOutputName: z.boolean(),
     }),
   })
   .and(repomixConfigBaseSchema);
@@ -119,6 +120,7 @@ export const repomixRunnerConfigDefaultSchema = z
       keepOutputFile: z.boolean().default(true),
       copyMode: runnerCopyModeSchema.default('file'),
       useTargetAsOutput: z.boolean().default(true),
+      useBundleNameAsOutputName: z.boolean().default(true),
     }),
   })
   .and(repomixConfigDefaultSchema);
@@ -143,5 +145,6 @@ export const defaultConfig = repomixRunnerConfigDefaultSchema.parse({
     keepOutputFile: true,
     copyMode: 'file',
     useTargetAsOutput: true,
+    useBundleNameAsOutputName: true,
   },
 });

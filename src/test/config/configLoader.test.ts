@@ -107,6 +107,7 @@ suite('configLoader', () => {
           keepOutputFile: true,
           copyMode: 'file',
           useTargetAsOutput: true,
+          useBundleNameAsOutputName: true,
         },
         output: {
           filePath: 'output.txt',
@@ -237,6 +238,7 @@ suite('configLoader', () => {
           keepOutputFile: true,
           copyMode: 'file',
           useTargetAsOutput: true,
+          useBundleNameAsOutputName: true,
         },
         output: {
           filePath: 'output.txt',

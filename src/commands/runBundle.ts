@@ -5,10 +5,21 @@ import { logger } from '../shared/logger';
 import { showTempNotification } from '../shared/showTempNotification';
 import { Bundle } from '../core/bundles/types';
 import { BundleManager } from '../core/bundles/bundleManager';
+import { readRepomixRunnerVscodeConfig } from '../config/configLoader';
+import { RepomixConfigFile } from '../config/configSchema';
 
 export async function runBundle(bundle: Bundle) {
   const cwd = getCwd();
   const bundleManager = new BundleManager(cwd);
+  const config = readRepomixRunnerVscodeConfig();
+  const overrideConfig: RepomixConfigFile = {};
+
+  if (config.runner.useBundleNameAsOutputName) {
+    overrideConfig.output = {
+      filePath: bundle.name,
+    };
+  }
+
   try {
     // Convert file paths to URIs
     const uris = bundle.files.map(filePath =>
@@ -47,7 +58,7 @@ export async function runBundle(bundle: Bundle) {
     }
 
     // Run Repomix on the bundle files
-    await runRepomixOnSelectedFiles(validUris);
+    await runRepomixOnSelectedFiles(validUris, overrideConfig);
 
     const updatedBundle = {
       ...bundle,

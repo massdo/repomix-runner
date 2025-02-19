@@ -45,6 +45,12 @@
             "type": "boolean",
             "default": true,
             "description": "🎯 ➡️  🎯 \n Use the targetted folder as the output folder"
+          },
+          "repomix.runner.useBundleNameAsOutputName": {
+            "order": 4,
+            "type": "boolean",
+            "default": true,
+            "description": "📝 \n Use bundle name as output file name when running a bundle"
           }
         }
       },
