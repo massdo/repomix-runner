@@ -1,14 +1,16 @@
-<div align="center">
-  <img src="assets/repomix-logo.png" alt="Repomix" width="200" height="auto" />
-</div>
+# Repomix Runner <img valign="middle" alt="Repomix logo" width="40" src="assets/repomix-logo.png" />
 
-# Repomix Runner
+You can support this project by giving a star on GitHub ! ⭐️ 🔭 🙏
 
+[![GitHub](https://img.shields.io/github/stars/massdo/repomix-runner?style=social)](https://github.com/massdo/repomix-runner)
 [![Version](https://img.shields.io/visual-studio-marketplace/v/DorianMassoulier.repomix-runner)](https://marketplace.visualstudio.com/items?itemName=DorianMassoulier.repomix-runner)
 [![Installs](https://img.shields.io/visual-studio-marketplace/i/DorianMassoulier.repomix-runner)](https://marketplace.visualstudio.com/items?itemName=DorianMassoulier.repomix-runner)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Repomix Runner is a VSCode extension that allows you to easily bundle files into a single output for AI processing. It uses the [Repomix](https://github.com/yamadashy/repomix) tool.
+<!-- [![Twitter](https://img.shields.io/twitter/follow/DorianMass49637
+)](https://twitter.com/DorianMass49637) -->
+
+Repomix Runner is a VSCode extension that allows you to easily bundle files into a single output for AI processing. It uses the great [Repomix](https://github.com/yamadashy/repomix) tool.
 
 ## ✨ Features
 
