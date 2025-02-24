@@ -9,8 +9,8 @@ import {
   RepomixRunnerConfigDefault,
   repomixRunnerConfigDefaultSchema,
   mergedConfigSchema,
-} from './configSchema';
-import { logger } from '../shared/logger';
+} from './configSchema.js';
+import { logger } from '../shared/logger.js';
 
 function stripJsonComments(json: string): string {
   // Remove multi-line comments but preserve line breaks

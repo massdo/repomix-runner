@@ -1,17 +1,17 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { execPromisify } from '../shared/execPromisify';
-import { logger } from '../shared/logger';
-import { mergeConfigs } from '../config/configLoader';
-import { getCwd } from '../config/getCwd';
-import { copyToClipboard } from '../core/files/copyToClipboard';
-import { cleanOutputFile } from '../core/files/cleanOutputFile';
-import { cliFlagsBuilder } from '../core/cli/cliFlagsBuilder';
-import { showTempNotification } from '../shared/showTempNotification';
-import { readRepomixFileConfig } from '../config/configLoader';
-import { readRepomixRunnerVscodeConfig } from '../config/configLoader';
-import { tempDirManager } from '../core/files/tempDirManager';
-import { RepomixConfigFile } from '../config/configSchema';
+import { execPromisify } from '../shared/execPromisify.js';
+import { logger } from '../shared/logger.js';
+import { mergeConfigs } from '../config/configLoader.js';
+import { getCwd } from '../config/getCwd.js';
+import { copyToClipboard } from '../core/files/copyToClipboard.js';
+import { cleanOutputFile } from '../core/files/cleanOutputFile.js';
+import { cliFlagsBuilder } from '../core/cli/cliFlagsBuilder.js';
+import { showTempNotification } from '../shared/showTempNotification.js';
+import { readRepomixFileConfig } from '../config/configLoader.js';
+import { readRepomixRunnerVscodeConfig } from '../config/configLoader.js';
+import { tempDirManager } from '../core/files/tempDirManager.js';
+import { RepomixConfigFile } from '../config/configSchema.js';
 
 export type RunRepomixDeps = {
   getCwd: typeof getCwd;

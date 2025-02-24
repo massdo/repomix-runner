@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
-import { runRepomix } from './runRepomix';
-import { getCwd } from '../config/getCwd';
-import { tempDirManager } from '../core/files/tempDirManager';
-import { defaultRunRepomixDeps } from './runRepomix';
-import { logger } from '../shared/logger';
-import { showTempNotification } from '../shared/showTempNotification';
+import { runRepomix } from './runRepomix.js';
+import { getCwd } from '../config/getCwd.js';
+import { tempDirManager } from '../core/files/tempDirManager.js';
+import { defaultRunRepomixDeps } from './runRepomix.js';
+import { logger } from '../shared/logger.js';
+import { showTempNotification } from '../shared/showTempNotification.js';
 import * as path from 'path';
-import { RepomixConfigFile } from '../config/configSchema';
+import { RepomixConfigFile } from '../config/configSchema.js';
 
 export async function runRepomixOnSelectedFiles(
   uris: vscode.Uri[],

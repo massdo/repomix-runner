@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import { Bundle } from '../core/bundles/types';
-import { BundleManager } from '../core/bundles/bundleManager';
-import { showTempNotification } from '../shared/showTempNotification';
+import { Bundle } from '../core/bundles/types.js';
+import { BundleManager } from '../core/bundles/bundleManager.js';
+import { showTempNotification } from '../shared/showTempNotification.js';
 
 export async function deleteBundle(bundleManager: BundleManager, bundle: Bundle) {
   const confirm = await vscode.window.showWarningMessage(

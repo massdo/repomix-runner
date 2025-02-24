@@ -1,8 +1,8 @@
 import * as assert from 'assert';
-import { runRepomix } from '../../commands/runRepomix';
+import { runRepomix } from '../../commands/runRepomix.js';
 import { type ChildProcess, type ExecOptions } from 'child_process';
-import { execPromisify } from '../../shared/execPromisify';
-import { MergedConfig } from '../../config/configSchema';
+import { execPromisify } from '../../shared/execPromisify.js';
+import { MergedConfig } from '../../config/configSchema.js';
 
 type PromiseWithChild<T> = Promise<T> & { child: ChildProcess };
 

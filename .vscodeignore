@@ -1,8 +1,9 @@
 .vscode/**
 .vscode-test/**
+node_modules/
 assets/repomix-demo.mp4
-src/test
-out/test
+src/
+out/
 .repomix
 .repomixignore
 .gitignore
@@ -16,3 +17,9 @@ vsc-extension-quickstart.md
 features.txt
 prompts.txt
 repomix-logo.svg
+tsconfig.json
+esbuild.js
+README.build.md
+.eslintrc.json
+.prettierrc
+.github

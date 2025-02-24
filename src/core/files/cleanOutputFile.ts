@@ -1,5 +1,5 @@
 import { unlink } from 'fs/promises';
-import { logger } from '../../shared/logger';
+import { logger } from '../../shared/logger.js';
 
 /**
  * Deletes the specified output file with logging.

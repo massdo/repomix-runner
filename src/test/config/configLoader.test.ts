@@ -6,14 +6,14 @@ import {
   readRepomixRunnerVscodeConfig,
   readRepomixFileConfig,
   mergeConfigs,
-} from '../../config/configLoader';
+} from '../../config/configLoader.js';
 import {
   defaultConfig,
   type RepomixConfigFile,
   type RepomixRunnerConfigDefault,
-} from '../../config/configSchema';
-import { getCwd } from '../../config/getCwd';
-import { logger } from '../../shared/logger';
+} from '../../config/configSchema.js';
+import { getCwd } from '../../config/getCwd.js';
+import { logger } from '../../shared/logger.js';
 import * as fs from 'fs';
 
 suite('configLoader', () => {

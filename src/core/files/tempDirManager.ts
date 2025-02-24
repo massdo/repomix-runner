@@ -1,10 +1,10 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { logger } from '../../shared/logger';
+import { logger } from '../../shared/logger.js';
 import { setTimeout } from 'node:timers/promises';
 import { access, unlink } from 'node:fs/promises';
-import { showTempNotification } from '../../shared/showTempNotification';
+import { showTempNotification } from '../../shared/showTempNotification.js';
 
 export class TempDirManager {
   private defaultTempDirName: string = 'repomix_runner';

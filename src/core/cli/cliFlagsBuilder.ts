@@ -1,4 +1,4 @@
-import { MergedConfig } from '../../config/configSchema';
+import { MergedConfig } from '../../config/configSchema.js';
 
 export const cliFlags = {
   // keep this up to date with repomix official cli flags

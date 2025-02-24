@@ -2,8 +2,8 @@ import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as os from 'os';
-import { copyToClipboard } from '../../../core/files/copyToClipboard';
-import { tempDirManager } from '../../../core/files/tempDirManager';
+import { copyToClipboard } from '../../../core/files/copyToClipboard.js';
+import { tempDirManager } from '../../../core/files/tempDirManager.js';
 
 type TestCase = {
   os: 'darwin' | 'win32' | 'linux';

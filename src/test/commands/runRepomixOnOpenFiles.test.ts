@@ -1,13 +1,13 @@
 import * as assert from 'assert';
 import * as sinon from 'sinon';
-import { runRepomixOnOpenFiles } from '../../commands/runRepomixOnOpenFiles';
-import * as getOpenFilesModule from '../../config/getOpenFiles';
-import * as getCwdModule from '../../config/getCwd';
-import * as runRepomixModule from '../../commands/runRepomix';
-import { defaultRunRepomixDeps } from '../../commands/runRepomix';
-import { tempDirManager } from '../../core/files/tempDirManager';
-import { logger } from '../../shared/logger';
-import * as showTempNotificationModule from '../../shared/showTempNotification';
+import { runRepomixOnOpenFiles } from '../../commands/runRepomixOnOpenFiles.js';
+import * as getOpenFilesModule from '../../config/getOpenFiles.js';
+import * as getCwdModule from '../../config/getCwd.js';
+import * as runRepomixModule from '../../commands/runRepomix.js';
+import { defaultRunRepomixDeps } from '../../commands/runRepomix.js';
+import { tempDirManager } from '../../core/files/tempDirManager.js';
+import { logger } from '../../shared/logger.js';
+import * as showTempNotificationModule from '../../shared/showTempNotification.js';
 
 suite('runRepomixOnOpenFiles', () => {
   let sandbox: sinon.SinonSandbox;

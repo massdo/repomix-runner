@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
-import { getCwd } from '../config/getCwd';
-import { runRepomixOnSelectedFiles } from './runRepomixOnSelectedFiles';
-import { logger } from '../shared/logger';
-import { showTempNotification } from '../shared/showTempNotification';
-import { Bundle } from '../core/bundles/types';
-import { BundleManager } from '../core/bundles/bundleManager';
-import { readRepomixRunnerVscodeConfig } from '../config/configLoader';
-import { RepomixConfigFile } from '../config/configSchema';
+import { getCwd } from '../config/getCwd.js';
+import { runRepomixOnSelectedFiles } from './runRepomixOnSelectedFiles.js';
+import { logger } from '../shared/logger.js';
+import { showTempNotification } from '../shared/showTempNotification.js';
+import { Bundle } from '../core/bundles/types.js';
+import { BundleManager } from '../core/bundles/bundleManager.js';
+import { readRepomixRunnerVscodeConfig } from '../config/configLoader.js';
+import { RepomixConfigFile } from '../config/configSchema.js';
 
 export async function runBundle(bundle: Bundle) {
   const cwd = getCwd();

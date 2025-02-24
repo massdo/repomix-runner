@@ -1,10 +1,10 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { logger } from '../../shared/logger';
-import { Bundle, BundleMetadata } from './types';
-import { showTempNotification } from '../../shared/showTempNotification';
-import { bundleTreeProvider } from './bundleTreeProvider';
+import { logger } from '../../shared/logger.js';
+import { Bundle, BundleMetadata } from './types.js';
+import { showTempNotification } from '../../shared/showTempNotification.js';
+import { bundleTreeProvider } from './bundleTreeProvider.js';
 
 export class BundleManager {
   private readonly repomixDir: string;

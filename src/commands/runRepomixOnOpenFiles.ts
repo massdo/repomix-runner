@@ -1,10 +1,10 @@
-import { runRepomix } from './runRepomix';
-import { getCwd } from '../config/getCwd';
-import { tempDirManager } from '../core/files/tempDirManager';
-import { defaultRunRepomixDeps } from './runRepomix';
-import { getOpenFiles } from '../config/getOpenFiles';
-import { logger } from '../shared/logger';
-import { showTempNotification } from '../shared/showTempNotification';
+import { runRepomix } from './runRepomix.js';
+import { getCwd } from '../config/getCwd.js';
+import { tempDirManager } from '../core/files/tempDirManager.js';
+import { defaultRunRepomixDeps } from './runRepomix.js';
+import { getOpenFiles } from '../config/getOpenFiles.js';
+import { logger } from '../shared/logger.js';
+import { showTempNotification } from '../shared/showTempNotification.js';
 
 export async function runRepomixOnOpenFiles() {
   const cwd = getCwd();

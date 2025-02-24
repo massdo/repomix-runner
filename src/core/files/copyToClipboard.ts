@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import { execPromisify } from '../../shared/execPromisify';
+import { execPromisify } from '../../shared/execPromisify.js';
 import { copyFile, access } from 'fs/promises';
-import { tempDirManager } from './tempDirManager';
+import { tempDirManager } from './tempDirManager.js';
 
 type OperatingSystem = 'darwin' | 'win32' | 'linux';
 

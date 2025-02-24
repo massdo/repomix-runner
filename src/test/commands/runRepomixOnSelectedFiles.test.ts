@@ -1,13 +1,13 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as sinon from 'sinon';
-import { runRepomixOnSelectedFiles } from '../../commands/runRepomixOnSelectedFiles';
-import * as getCwdModule from '../../config/getCwd';
-import * as runRepomixModule from '../../commands/runRepomix';
-import { defaultRunRepomixDeps } from '../../commands/runRepomix';
-import { tempDirManager } from '../../core/files/tempDirManager';
-import { logger } from '../../shared/logger';
-import * as showTempNotificationModule from '../../shared/showTempNotification';
+import { runRepomixOnSelectedFiles } from '../../commands/runRepomixOnSelectedFiles.js';
+import * as getCwdModule from '../../config/getCwd.js';
+import * as runRepomixModule from '../../commands/runRepomix.js';
+import { defaultRunRepomixDeps } from '../../commands/runRepomix.js';
+import { tempDirManager } from '../../core/files/tempDirManager.js';
+import { logger } from '../../shared/logger.js';
+import * as showTempNotificationModule from '../../shared/showTempNotification.js';
 
 suite('runRepomixOnSelectedFiles', () => {
   let sandbox: sinon.SinonSandbox;

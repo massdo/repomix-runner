@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as sinon from 'sinon';
-import { getOpenFiles } from '../../config/getOpenFiles';
+import { getOpenFiles } from '../../config/getOpenFiles.js';
 
 suite('getOpenFiles', () => {
   let sandbox: sinon.SinonSandbox;

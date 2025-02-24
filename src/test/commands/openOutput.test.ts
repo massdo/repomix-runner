@@ -1,7 +1,8 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as sinon from 'sinon';
-import { logger } from '../../shared/logger';
+import { logger } from '../../shared/logger.js';
+import { openOutput } from '../../commands/openOutput.js';
 
 suite('Open Output Command', () => {
   /**
@@ -12,19 +13,18 @@ suite('Open Output Command', () => {
    * 2. Creates a spy on logger.show to verify our method is called
    *
    * The test can break if:
-   * - The command ID 'repomixRunner.openOutput' is changed or removed.
    * - The implementation of the `openOutput` function in `openOutput.ts` is modified.
    * - The logger.show method is renamed or its behavior is changed.
    * - The vscode.OutputChannel.show method behavior changes.
    */
-  test('should show output channel when "Repomix Output" is executed', async () => {
+  test('should show output channel when openOutput function is called', async () => {
     // Create a spy on the actual OutputChannel.show method
     const channelShowSpy = sinon.spy(logger['outputChannel'] as vscode.OutputChannel, 'show');
     const loggerShowSpy = sinon.spy(logger, 'show');
 
     try {
-      // Execute the command
-      await vscode.commands.executeCommand('repomixRunner.openOutput');
+      // Call the function directly
+      openOutput();
 
       // Verify both spies were called
       assert.strictEqual(loggerShowSpy.calledOnce, true, 'Logger.show was not called');

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import { Bundle } from './types';
-import { BundleManager } from './bundleManager';
-import { getCwd } from '../../config/getCwd';
+import { Bundle } from './types.js';
+import { BundleManager } from './bundleManager.js';
+import { getCwd } from '../../config/getCwd.js';
 import * as path from 'path';
 
 class BundleTreeItem extends vscode.TreeItem implements BundleTreeItem {

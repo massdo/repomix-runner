@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { Bundle } from '../core/bundles/types';
-import { BundleManager } from '../core/bundles/bundleManager';
-import { getCwd } from '../config/getCwd';
-import { logger } from '../shared/logger';
-import { showTempNotification } from '../shared/showTempNotification';
+import { Bundle } from '../core/bundles/types.js';
+import { BundleManager } from '../core/bundles/bundleManager.js';
+import { getCwd } from '../config/getCwd.js';
+import { logger } from '../shared/logger.js';
+import { showTempNotification } from '../shared/showTempNotification.js';
 
 export async function saveBundle(uris: vscode.Uri[]) {
   if (!uris || uris.length === 0) {

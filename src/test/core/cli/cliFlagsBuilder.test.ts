@@ -1,6 +1,6 @@
 import * as assert from 'assert';
-import { cliFlagsBuilder } from '../../../core/cli/cliFlagsBuilder';
-import { defaultConfig, MergedConfig } from '../../../config/configSchema';
+import { cliFlagsBuilder } from '../../../core/cli/cliFlagsBuilder.js';
+import { defaultConfig, MergedConfig } from '../../../config/configSchema.js';
 
 suite('CliFlagsBuilder', () => {
   let baseConfig: MergedConfig;

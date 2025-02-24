@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import { BundleManager } from '../core/bundles/bundleManager';
-import { getCwd } from '../config/getCwd';
-import { Bundle } from '../core/bundles/types';
-import { logger } from '../shared/logger';
-import { showTempNotification } from '../shared/showTempNotification';
-import { deleteBundle } from './deleteBundle';
+import { BundleManager } from '../core/bundles/bundleManager.js';
+import { getCwd } from '../config/getCwd.js';
+import { Bundle } from '../core/bundles/types.js';
+import { logger } from '../shared/logger.js';
+import { showTempNotification } from '../shared/showTempNotification.js';
+import { deleteBundle } from './deleteBundle.js';
 
 export async function manageBundles() {
   const cwd = getCwd();

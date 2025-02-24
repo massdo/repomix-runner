@@ -1,19 +1,19 @@
 import * as vscode from 'vscode';
-import { runRepomix } from './commands/runRepomix';
-import { openSettings } from './commands/openSettings';
-import { openOutput } from './commands/openOutput';
-import { runRepomixOnOpenFiles } from './commands/runRepomixOnOpenFiles';
-import { getCwd } from './config/getCwd';
-import { tempDirManager } from './core/files/tempDirManager';
-import { runRepomixOnSelectedFiles } from './commands/runRepomixOnSelectedFiles';
-import { saveBundle } from './commands/saveBundle';
-import { runBundle } from './commands/runBundle';
-import { manageBundles } from './commands/manageBundles';
-import { bundleTreeProvider } from './core/bundles/bundleTreeProvider';
-import { BundleManager } from './core/bundles/bundleManager';
-import { BundleTreeItem } from './core/bundles/types';
-import { deleteBundle } from './commands/deleteBundle';
-import { removeFileFromBundle } from './commands/removeFileFromBundle';
+import { runRepomix } from './commands/runRepomix.js';
+import { openSettings } from './commands/openSettings.js';
+import { openOutput } from './commands/openOutput.js';
+import { runRepomixOnOpenFiles } from './commands/runRepomixOnOpenFiles.js';
+import { getCwd } from './config/getCwd.js';
+import { tempDirManager } from './core/files/tempDirManager.js';
+import { runRepomixOnSelectedFiles } from './commands/runRepomixOnSelectedFiles.js';
+import { saveBundle } from './commands/saveBundle.js';
+import { runBundle } from './commands/runBundle.js';
+import { manageBundles } from './commands/manageBundles.js';
+import { bundleTreeProvider } from './core/bundles/bundleTreeProvider.js';
+import { BundleManager } from './core/bundles/bundleManager.js';
+import { BundleTreeItem } from './core/bundles/types.js';
+import { deleteBundle } from './commands/deleteBundle.js';
+import { removeFileFromBundle } from './commands/removeFileFromBundle.js';
 
 export function activate(context: vscode.ExtensionContext) {
   const bundleManager = new BundleManager(getCwd());

@@ -1,9 +1,9 @@
 import * as assert from 'assert';
-import { cleanOutputFile } from '../../../core/files/cleanOutputFile';
+import { cleanOutputFile } from '../../../core/files/cleanOutputFile.js';
 import * as path from 'node:path';
 import { tmpdir } from 'node:os';
 import * as sinon from 'sinon';
-import { logger } from '../../../shared/logger';
+import { logger } from '../../../shared/logger.js';
 import * as fs from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 

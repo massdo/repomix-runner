@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { getCwd } from '../../config/getCwd';
+import { getCwd } from '../../config/getCwd.js';
 import { basename } from 'path';
 import * as vscode from 'vscode';
 import * as sinon from 'sinon';
