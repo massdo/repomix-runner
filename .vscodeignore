@@ -23,3 +23,4 @@ README.build.md
 .eslintrc.json
 .prettierrc
 .github
+**/*.js.map

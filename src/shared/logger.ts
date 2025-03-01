@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import util from 'node:util';
+import * as util from 'node:util';
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'success' | 'trace' | 'log';
 type LogTarget = 'console' | 'output' | 'both';

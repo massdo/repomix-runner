@@ -15,6 +15,7 @@ import {
 import { getCwd } from '../../config/getCwd.js';
 import { logger } from '../../shared/logger.js';
 import * as fs from 'fs';
+import { readFile } from 'fs/promises';
 
 suite('configLoader', () => {
   let testCwd: string;
@@ -44,8 +45,10 @@ suite('configLoader', () => {
      * @throws {AssertionError} If the keys from both sources do not match.
      */
     test('VSCode configuration keys should match package.json configuration keys', () => {
-      // Step 1: Retrieve keys from package.json
-      const packageConfig = require('../../../package.json').contributes.configuration;
+      // Step 1: Retrieve keys from package.json using fs to read the file
+      const packageJsonPath = path.resolve(__dirname, '../../../package.json');
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+      const packageConfig = packageJson.contributes.configuration;
       const packageJsonKeys = new Set<string>();
 
       packageConfig.forEach((section: any) => {
@@ -182,13 +185,23 @@ suite('configLoader', () => {
       });
 
       // Mock module fs/promises
-      const originalReadFile = require('fs/promises').readFile;
-      require('fs/promises').readFile = () => Promise.resolve(invalidConfigContent);
+      const originalReadFile = readFile;
+      const mockedReadFile = () => Promise.resolve(invalidConfigContent);
+
+      // Replace the original readFile with our mocked version
+      Object.defineProperty(fs.promises, 'readFile', {
+        value: mockedReadFile,
+        writable: true,
+      });
 
       try {
         await assert.rejects(readRepomixFileConfig(testCwd), /Invalid repomix.config.json format/);
       } finally {
-        require('fs/promises').readFile = originalReadFile;
+        // Restore the original readFile
+        Object.defineProperty(fs.promises, 'readFile', {
+          value: originalReadFile,
+          writable: true,
+        });
       }
     });
 

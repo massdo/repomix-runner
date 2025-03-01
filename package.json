@@ -1,7 +1,8 @@
 {
   "publisher": "DorianMassoulier",
   "name": "repomix-runner",
-  "main": "./dist/extension.js",
+  "main": "./dist/extension.cjs",
+  "type": "module",
   "displayName": "Repomix Runner",
   "icon": "assets/repomix-logo.png",
   "description": "Easily bundle files into a single output for AI processing.",
@@ -357,17 +358,16 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
-    "compile": "npm run check-types && npm run lint && node esbuild.js",
+    "compile": "npm run check-types && npm run lint && node esbuild.mjs",
     "watch": "npm-run-all -p watch:*",
-    "watch:esbuild": "rimraf dist && node esbuild.js --watch",
+    "watch:esbuild": "rimraf dist && node esbuild.mjs --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "package": "rimraf dist && npm run check-types && npm run lint && node esbuild.js --production",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "package": "rimraf dist && npm run check-types && npm run lint && node esbuild.mjs --production",
+    "compile-tests": "tsc -p tsconfig.tests.json --outDir out && echo '{}' > out/package.json",
+    "pretest": "rimraf out && rimraf dist && npm run compile-tests && npm run compile",
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "npm run lint && vscode-test"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
@@ -380,7 +380,7 @@
     "@vscode/test-electron": "^2.4.1",
     "esbuild": "^0.25.0",
     "eslint": "^9.16.0",
-    "globby": "^14.1.0",
+    "fast-glob": "^3.3.3",
     "npm-run-all": "^4.1.5",
     "rimraf": "^6.0.1",
     "sinon": "^19.0.2",

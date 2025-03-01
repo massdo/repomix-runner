@@ -1,5 +1,6 @@
 import { setTimeout } from 'node:timers/promises';
 import { existsSync, unlinkSync } from 'node:fs';
+const fg = require('fast-glob');
 
 export const waitForFile = async (filePath: string, timeout: number = 5000): Promise<void> => {
   const start = Date.now();
@@ -12,8 +13,7 @@ export const waitForFile = async (filePath: string, timeout: number = 5000): Pro
 };
 
 export const deleteFiles = async (patterns: string | string[]): Promise<void> => {
-  const { globby } = await import('globby');
-  const filePaths = await globby(patterns);
+  const filePaths = await fg(patterns);
   filePaths.forEach((filePath: string) => {
     if (existsSync(filePath)) {
       try {
