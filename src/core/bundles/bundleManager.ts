@@ -4,15 +4,27 @@ import * as vscode from 'vscode';
 import { logger } from '../../shared/logger.js';
 import { Bundle, BundleMetadata } from './types.js';
 import { showTempNotification } from '../../shared/showTempNotification.js';
-import { bundleTreeProvider } from './bundleTreeProvider.js';
+import { IBundleManager, Refreshable } from './interfaces.js';
 
-export class BundleManager {
+// Type d'options défini localement, près de son utilisation
+export interface BundleManagerOptions {
+  refreshProvider?: Refreshable;
+  // Emplacement pour futures dépendances
+}
+
+export class BundleManager implements IBundleManager {
   private readonly repomixDir: string;
   private readonly bundlesFile: string;
+  private refreshProvider?: Refreshable;
 
-  constructor(workspaceRoot: string) {
+  constructor(workspaceRoot: string, options?: BundleManagerOptions) {
     this.repomixDir = path.join(workspaceRoot, '.repomix');
     this.bundlesFile = path.join(this.repomixDir, 'bundles.json');
+    this.refreshProvider = options?.refreshProvider;
+  }
+
+  setRefreshProvider(provider: Refreshable): void {
+    this.refreshProvider = provider;
   }
 
   async initialize(): Promise<void> {
@@ -47,7 +59,9 @@ export class BundleManager {
       const metadata = await this.getAllBundles();
       metadata.bundles[bundle.name] = bundle;
       await fs.writeFile(this.bundlesFile, JSON.stringify(metadata, null, 2));
-      bundleTreeProvider.refresh();
+      if (this.refreshProvider) {
+        this.refreshProvider.refresh();
+      }
     } catch (error) {
       logger.both.error('Failed to save bundle:', error);
       throw error;
@@ -59,7 +73,9 @@ export class BundleManager {
       const metadata = await this.getAllBundles();
       delete metadata.bundles[bundleName];
       await fs.writeFile(this.bundlesFile, JSON.stringify(metadata, null, 2));
-      bundleTreeProvider.refresh();
+      if (this.refreshProvider) {
+        this.refreshProvider.refresh();
+      }
     } catch (error) {
       logger.both.error('Failed to delete bundle:', error);
       throw error;

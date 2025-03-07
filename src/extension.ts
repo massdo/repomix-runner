@@ -9,14 +9,21 @@ import { runRepomixOnSelectedFiles } from './commands/runRepomixOnSelectedFiles.
 import { saveBundle } from './commands/saveBundle.js';
 import { runBundle } from './commands/runBundle.js';
 import { manageBundles } from './commands/manageBundles.js';
-import { bundleTreeProvider } from './core/bundles/bundleTreeProvider.js';
+import { BundleTreeProvider, BundleTreeItem } from './core/bundles/bundleTreeProvider.js';
 import { BundleManager } from './core/bundles/bundleManager.js';
-import { BundleTreeItem } from './core/bundles/types.js';
 import { deleteBundle } from './commands/deleteBundle.js';
 import { removeFileFromBundle } from './commands/removeFileFromBundle.js';
 
 export function activate(context: vscode.ExtensionContext) {
+  // Initialiser avec une injection par options propre et évolutive
   const bundleManager = new BundleManager(getCwd());
+
+  const bundleTreeProvider = new BundleTreeProvider(getCwd(), {
+    bundleManager: bundleManager,
+  });
+
+  // Configurer le bundleManager avec son provider de rafraîchissement
+  bundleManager.setRefreshProvider(bundleTreeProvider);
 
   const runRepomixCommand = vscode.commands.registerCommand(
     'repomixRunner.run',
@@ -77,7 +84,8 @@ export function activate(context: vscode.ExtensionContext) {
         return;
       }
 
-      await saveBundle(selectedUris);
+      // Injection directe du bundleManager
+      await saveBundle(selectedUris, bundleManager);
     }
   );
 
@@ -89,9 +97,9 @@ export function activate(context: vscode.ExtensionContext) {
         if (!selectedBundle) {
           return;
         }
-        return runBundle(selectedBundle);
+        return runBundle(selectedBundle, bundleManager);
       }
-      return runBundle(param.bundle);
+      return runBundle(param.bundle, bundleManager);
     }
   );
 
@@ -102,9 +110,8 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  const manageBundlesCommand = vscode.commands.registerCommand(
-    'repomixRunner.manageBundles',
-    manageBundles
+  const manageBundlesCommand = vscode.commands.registerCommand('repomixRunner.manageBundles', () =>
+    manageBundles(bundleManager)
   );
 
   const removeFileFromBundleCommand = vscode.commands.registerCommand(

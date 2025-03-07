@@ -1,7 +1,7 @@
-import { BundleManager } from '../core/bundles/bundleManager.js';
+import { IBundleManager } from '../core/bundles/interfaces.js';
 import { BundleTreeItem } from '../core/bundles/types.js';
 
-export async function removeFileFromBundle(bundleManager: BundleManager, item: BundleTreeItem) {
+export async function removeFileFromBundle(bundleManager: IBundleManager, item: BundleTreeItem) {
   if (!item.filePath || !item.bundle) {
     return;
   }

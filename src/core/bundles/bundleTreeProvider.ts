@@ -1,10 +1,15 @@
 import * as vscode from 'vscode';
 import { Bundle } from './types.js';
-import { BundleManager } from './bundleManager.js';
-import { getCwd } from '../../config/getCwd.js';
+import { IBundleManager, Refreshable } from './interfaces.js';
 import * as path from 'path';
 
-class BundleTreeItem extends vscode.TreeItem implements BundleTreeItem {
+// Type d'options défini localement, près de son utilisation
+export interface BundleTreeProviderOptions {
+  bundleManager: IBundleManager;
+  // Emplacement pour futures dépendances
+}
+
+export class BundleTreeItem extends vscode.TreeItem implements BundleTreeItem {
   constructor(
     public readonly bundle: Bundle,
     public readonly type: 'bundle' | 'file',
@@ -33,14 +38,18 @@ class BundleTreeItem extends vscode.TreeItem implements BundleTreeItem {
   }
 }
 
-class BundleTreeProvider implements vscode.TreeDataProvider<BundleTreeItem> {
+export class BundleTreeProvider implements vscode.TreeDataProvider<BundleTreeItem>, Refreshable {
   private _onDidChangeTreeData: vscode.EventEmitter<BundleTreeItem | undefined | null | void> =
     new vscode.EventEmitter<BundleTreeItem | undefined | null | void>();
 
   readonly onDidChangeTreeData: vscode.Event<BundleTreeItem | undefined | null | void> =
     this._onDidChangeTreeData.event;
 
-  constructor(private workspaceRoot: string) {}
+  private bundleManager: IBundleManager;
+
+  constructor(private workspaceRoot: string, options: BundleTreeProviderOptions) {
+    this.bundleManager = options.bundleManager;
+  }
 
   refresh(): void {
     this._onDidChangeTreeData.fire();
@@ -55,12 +64,10 @@ class BundleTreeProvider implements vscode.TreeDataProvider<BundleTreeItem> {
       return Promise.resolve([]);
     }
 
-    const bundleManager = new BundleManager(this.workspaceRoot);
-
     if (!element) {
       // Root level - show bundles
       try {
-        const metadata = await bundleManager.getAllBundles();
+        const metadata = await this.bundleManager.getAllBundles();
         return Object.values(metadata.bundles)
           .sort((a, b) => a.name.localeCompare(b.name))
           .map(bundle => new BundleTreeItem(bundle, 'bundle'));
@@ -77,5 +84,3 @@ class BundleTreeProvider implements vscode.TreeDataProvider<BundleTreeItem> {
     return [];
   }
 }
-
-export const bundleTreeProvider = new BundleTreeProvider(getCwd());

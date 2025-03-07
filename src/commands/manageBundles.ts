@@ -1,15 +1,12 @@
 import * as vscode from 'vscode';
-import { BundleManager } from '../core/bundles/bundleManager.js';
+import { IBundleManager } from '../core/bundles/interfaces.js';
 import { getCwd } from '../config/getCwd.js';
 import { Bundle } from '../core/bundles/types.js';
 import { logger } from '../shared/logger.js';
 import { showTempNotification } from '../shared/showTempNotification.js';
 import { deleteBundle } from './deleteBundle.js';
 
-export async function manageBundles() {
-  const cwd = getCwd();
-  const bundleManager = new BundleManager(cwd);
-
+export async function manageBundles(bundleManager: IBundleManager) {
   try {
     const metadata = await bundleManager.getAllBundles();
     const bundleNames = Object.keys(metadata.bundles);
@@ -90,7 +87,7 @@ ${bundle.files.map(file => `- ${file}`).join('\n')}
   await vscode.window.showTextDocument(doc);
 }
 
-async function editBundle(bundleManager: BundleManager, bundle: Bundle) {
+async function editBundle(bundleManager: IBundleManager, bundle: Bundle) {
   // Edit name
   const newName = await vscode.window.showInputBox({
     prompt: 'Enter new name for bundle',

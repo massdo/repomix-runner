@@ -4,13 +4,12 @@ import { runRepomixOnSelectedFiles } from './runRepomixOnSelectedFiles.js';
 import { logger } from '../shared/logger.js';
 import { showTempNotification } from '../shared/showTempNotification.js';
 import { Bundle } from '../core/bundles/types.js';
-import { BundleManager } from '../core/bundles/bundleManager.js';
+import { IBundleManager } from '../core/bundles/interfaces.js';
 import { readRepomixRunnerVscodeConfig } from '../config/configLoader.js';
 import { RepomixConfigFile } from '../config/configSchema.js';
 
-export async function runBundle(bundle: Bundle) {
+export async function runBundle(bundle: Bundle, bundleManager: IBundleManager) {
   const cwd = getCwd();
-  const bundleManager = new BundleManager(cwd);
   const config = readRepomixRunnerVscodeConfig();
   const overrideConfig: RepomixConfigFile = {};
 
