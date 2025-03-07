@@ -11,16 +11,17 @@ import {
   mergedConfigSchema,
 } from './configSchema.js';
 import { logger } from '../shared/logger.js';
+import stripJsonComments from 'strip-json-comments';
 
-function stripJsonComments(json: string): string {
-  // Remove multi-line comments but preserve line breaks
-  json = json.replace(/\/\*[\s\S]*?\*\//g, match => match.replace(/[^\r\n]/g, ' '));
+// function stripJsonComments(json: string): string {
+//   // Remove multi-line comments but preserve line breaks
+//   json = json.replace(/\/\*[\s\S]*?\*\//g, match => match.replace(/[^\r\n]/g, ' '));
 
-  // Remove single-line comments but preserve line breaks
-  json = json.replace(/\/\/[^\n\r]*/g, match => match.replace(/[^\r\n]/g, ' '));
+//   // Remove single-line comments but preserve line breaks
+//   json = json.replace(/\/\/[^\n\r]*/g, match => match.replace(/[^\r\n]/g, ' '));
 
-  return json;
-}
+//   return json;
+// }
 
 function addFileExtension(filePath: string, style: string): string {
   const extensionMap: Record<string, string> = {

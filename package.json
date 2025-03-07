@@ -12,7 +12,7 @@
   },
   "version": "0.3.1",
   "engines": {
-    "vscode": "^1.93.0"
+    "vscode": "^1.96.2"
   },
   "categories": [
     "Other"
@@ -363,11 +363,13 @@
     "watch:esbuild": "rimraf dist && node esbuild.mjs --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
     "package": "rimraf dist && npm run check-types && npm run lint && node esbuild.mjs --production",
-    "compile-tests": "tsc -p tsconfig.tests.json --outDir out && echo '{}' > out/package.json",
-    "pretest": "rimraf out && rimraf dist && npm run compile-tests && npm run compile",
+    "compile-tests": "tsc -p tsconfig.test.json --outDir out && echo '{}' > out/package.json",
+    "pretest": "rimraf out && rimraf dist && npm run compile && npm run compile-tests",
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
-    "test": "npm run lint && vscode-test"
+    "test": "npm run lint && vscode-test",
+    "mocha": "tsc -p tsconfig.json --outDir out && mocha out/test/**/*.test.js ",
+    "clean": "rimraf out && rimraf dist"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
@@ -381,6 +383,7 @@
     "esbuild": "^0.25.0",
     "eslint": "^9.16.0",
     "fast-glob": "^3.3.3",
+    "mocha": "^11.1.0",
     "npm-run-all": "^4.1.5",
     "rimraf": "^6.0.1",
     "sinon": "^19.0.2",
@@ -388,6 +391,7 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
+    "strip-json-comments": "^5.0.1",
     "zod": "^3.24.1"
   },
   "__metadata": {
