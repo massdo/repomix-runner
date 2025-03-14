@@ -85,7 +85,9 @@ export function cliFlagsBuilder(config: MergedConfig, flags = cliFlags): string 
   }
   // Include
   if (config.include.length > 0) {
-    outputFlags.push(`${flags.include} "${config.include.join(',')}"`);
+    // Normalize Windows paths: replace backslashes with normal slashes
+    const normalizedPaths = config.include.map(path => path.replace(/\\/g, '/'));
+    outputFlags.push(`${flags.include} "${normalizedPaths.join(',')}"`);
   }
   // Ignore
   if (config.ignore.customPatterns.length > 0) {
