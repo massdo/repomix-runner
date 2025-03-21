@@ -24,7 +24,7 @@ export async function saveBundle(uris: vscode.Uri[]) {
       if (!value) {
         return 'Bundle name is required';
       }
-      if (!/^[a-zA-Z0-9-_]+$/.test(value)) {
+      if (!/^[a-zA-Z0-9-_.\/]+$/.test(value)) {
         return 'Bundle name can only contain letters, numbers, hyphens, and underscores';
       }
       return null;
