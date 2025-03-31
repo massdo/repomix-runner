@@ -104,6 +104,7 @@ suite('configLoader', () => {
     test('should return validated config from vscode settings menu', () => {
       const validConfigFromVscodeSettings: RepomixRunnerConfigDefault = {
         runner: {
+          verbose: true,
           keepOutputFile: true,
           copyMode: 'file',
           useTargetAsOutput: true,
@@ -158,7 +159,7 @@ suite('configLoader', () => {
       assert.ok(config);
     });
 
-    test('Logger should be called when repomix.config.json does not exist', async () => {
+    test('Logger should  be called when repomix.config.json does not exist', async () => {
       const loggerSpy = sinon.spy(logger.both, 'debug');
 
       try {
@@ -167,7 +168,10 @@ suite('configLoader', () => {
         assert.strictEqual(config, undefined);
 
         sinon.assert.calledOnce(loggerSpy);
-        sinon.assert.calledWith(loggerSpy, 'repomix.config.json file does not exist');
+        sinon.assert.calledWith(
+          loggerSpy,
+          "Can't access config file at /non/existent/path/repomix.config.json"
+        );
       } finally {
         loggerSpy.restore();
       }
@@ -235,6 +239,7 @@ suite('configLoader', () => {
     test('repomix.config.json should override vscode settings', () => {
       const vscodeConfig: RepomixRunnerConfigDefault = {
         runner: {
+          verbose: false,
           keepOutputFile: true,
           copyMode: 'file',
           useTargetAsOutput: true,

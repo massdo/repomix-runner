@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { readFile } from 'fs/promises';
+import { access, readFile } from 'fs/promises';
 import {
   type RepomixConfigFile,
   type MergedConfig,
@@ -43,13 +43,19 @@ export function readRepomixRunnerVscodeConfig(): RepomixRunnerConfigDefault {
   return validatedConfig;
 }
 
-export async function readRepomixFileConfig(cwd: string): Promise<RepomixConfigFile | void> {
-  const configPath = path.join(cwd, 'repomix.config.json'); // TODO support --config flag
+export async function readRepomixFileConfig(
+  cwd: string,
+  customConfigPathRelative?: string
+): Promise<RepomixConfigFile | void> {
+  const configPath = path.join(cwd, customConfigPathRelative || 'repomix.config.json'); // TODO support --config flag
 
   try {
-    await readFile(configPath, { encoding: 'utf8' });
+    await access(configPath);
   } catch (error) {
-    logger.both.debug('repomix.config.json file does not exist');
+    if (customConfigPathRelative) {
+      vscode.window.showErrorMessage(`Can't access config file at ${configPath}`);
+    }
+    logger.both.debug(`Can't access config file at ${configPath}`);
     return;
   }
 

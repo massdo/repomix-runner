@@ -6,27 +6,115 @@ import { runRepomixOnOpenFiles } from './commands/runRepomixOnOpenFiles.js';
 import { getCwd } from './config/getCwd.js';
 import { tempDirManager } from './core/files/tempDirManager.js';
 import { runRepomixOnSelectedFiles } from './commands/runRepomixOnSelectedFiles.js';
-import { saveBundle } from './commands/saveBundle.js';
 import { runBundle } from './commands/runBundle.js';
-import { manageBundles } from './commands/manageBundles.js';
-import { bundleTreeProvider } from './core/bundles/bundleTreeProvider.js';
-import { BundleManager } from './core/bundles/bundleManager.js';
-import { BundleTreeItem } from './core/bundles/types.js';
 import { deleteBundle } from './commands/deleteBundle.js';
-import { removeFileFromBundle } from './commands/removeFileFromBundle.js';
+import { BundleDataProvider, TreeNode } from './core/bundles/bundleDataProvider.js';
+import { BundleManager } from './core/bundles/bundleManager.js';
+import { BundleFileDecorationProvider } from './core/bundles/bundleFileDecorationProvider.js';
+import { selectActiveBundle } from './commands/selectActiveBundle.js';
+import { createBundle } from './commands/createBundle.js';
+import { mutateActiveBundle } from './commands/mutateActiveBundle.js';
+import { editBundle } from './commands/editBundle.js';
+import { goToConfigFile } from './commands/goToConfigFile.js';
 
 export function activate(context: vscode.ExtensionContext) {
-  const bundleManager = new BundleManager(getCwd());
+  const cwd = getCwd();
+  const bundleManager = new BundleManager(cwd);
+
+  const bundleDataProvider = new BundleDataProvider(bundleManager);
+  const decorationProvider = new BundleFileDecorationProvider(bundleDataProvider);
+  const bundleTreeView = vscode.window.createTreeView('repomixBundles', {
+    treeDataProvider: bundleDataProvider,
+    showCollapseAll: true,
+  });
+
+  // Init to avoid circular dependency
+  bundleDataProvider.setTreeView(bundleTreeView);
+  bundleDataProvider.setDecorationProvider(decorationProvider);
+
+  const decorationProviderSubscription =
+    vscode.window.registerFileDecorationProvider(decorationProvider);
+
+  const addSelectedFilesToNewBundleCommand = vscode.commands.registerCommand(
+    'repomixRunner.addSelectedFilesToNewBundle',
+    async (uri: vscode.Uri, uris: vscode.Uri[]) => {
+      const selectedUris = uris || (uri ? [uri] : []);
+
+      const isBundleCreated = await createBundle(bundleManager);
+
+      if (!isBundleCreated) {
+        return;
+      }
+
+      await mutateActiveBundle(selectedUris, {
+        bundleManager: bundleManager,
+        cwd,
+        action: 'add',
+      });
+    }
+  );
+
+  const addSelectedFilesToActiveBundleCommand = vscode.commands.registerCommand(
+    'repomixRunner.addSelectedFilesToActiveBundle',
+    async (uri: vscode.Uri, uris: vscode.Uri[]) => {
+      const selectedUris = uris || (uri ? [uri] : []);
+
+      await mutateActiveBundle(selectedUris, {
+        bundleManager: bundleManager,
+        cwd,
+        action: 'add',
+      });
+    }
+  );
+
+  const removeSelectedFilesFromExplorerToActiveBundleCommand = vscode.commands.registerCommand(
+    'repomixRunner.removeSelectedFilesFromActiveBundle',
+    async (uri: vscode.Uri, uris: vscode.Uri[]) => {
+      const selectedUris = uris || (uri ? [uri] : []);
+
+      await mutateActiveBundle(selectedUris, {
+        bundleManager: bundleManager,
+        cwd,
+        action: 'remove',
+      });
+    }
+  );
+
+  const removeSelectedFilesFromCustomViewToActiveBundleCommand = vscode.commands.registerCommand(
+    'repomixRunner.removeSelectedFilesFromCustomViewToActiveBundle',
+    async (node: TreeNode) => {
+      if (!node || !node.resourceUri) {
+        return;
+      }
+
+      const uri = node.resourceUri;
+
+      await mutateActiveBundle([uri], {
+        bundleManager: bundleManager,
+        cwd,
+        action: 'remove',
+      });
+    }
+  );
+
+  const createBundleCommand = vscode.commands.registerCommand('repomixRunner.createBundle', () => {
+    createBundle(bundleManager);
+  });
+
+  const editBundleCommand = vscode.commands.registerCommand(
+    'repomixRunner.editBundle',
+    (node: TreeNode) => {
+      editBundle({ bundleManager, bundleId: node?.bundleId });
+    }
+  );
 
   const runRepomixCommand = vscode.commands.registerCommand(
     'repomixRunner.run',
     (uri?: vscode.Uri) => {
       let targetDir = uri?.fsPath;
-
       if (!targetDir) {
         targetDir = getCwd();
       }
-
       runRepomix(targetDir, tempDirManager.getTempDir());
     }
   );
@@ -46,99 +134,81 @@ export function activate(context: vscode.ExtensionContext) {
   const runRepomixOnSelectedFilesCommand = vscode.commands.registerCommand(
     'repomixRunner.runOnSelectedFiles',
     (uri: vscode.Uri, uris: vscode.Uri[]) => {
-      // When right-clicking, if multiple files are selected, VS Code passes them as the second parameter
-      // If only one file is selected, it comes as the first parameter
       const selectedUris = uris || (uri ? [uri] : []);
       runRepomixOnSelectedFiles(selectedUris);
     }
   );
 
-  const saveBundleCommand = vscode.commands.registerCommand(
-    'repomixRunner.saveBundle',
-    async (uri: vscode.Uri, uris: vscode.Uri[]) => {
-      // Get selected files from the explorer
-      let selectedUris: vscode.Uri[] = [];
+  const runBundleCommand = vscode.commands.registerCommand(
+    'repomixRunner.runBundle',
+    async node => {
+      let activeBundleId = node?.bundleId;
 
-      if (uris && uris.length > 0) {
-        // Multiple files selected
-        selectedUris = uris;
-      } else if (uri) {
-        // Single file selected
-        selectedUris = [uri];
+      if (!node) {
+        activeBundleId = await selectActiveBundle(node, bundleManager);
       } else {
-        // Try to get the current selection
-        selectedUris = vscode.window.activeTextEditor
-          ? [vscode.window.activeTextEditor.document.uri]
-          : [];
+        bundleManager.setActiveBundle(activeBundleId);
       }
 
-      if (selectedUris.length === 0) {
-        vscode.window.showWarningMessage('Please select one or more files first');
+      if (!activeBundleId) {
         return;
       }
 
-      await saveBundle(selectedUris);
-    }
-  );
-
-  const runBundleCommand = vscode.commands.registerCommand(
-    'repomixRunner.runBundle',
-    async (param?: BundleTreeItem) => {
-      if (!param) {
-        const selectedBundle = await bundleManager.selectBundle();
-        if (!selectedBundle) {
-          return;
-        }
-        return runBundle(selectedBundle);
-      }
-      return runBundle(param.bundle);
+      await runBundle(bundleManager, activeBundleId);
     }
   );
 
   const deleteBundleCommand = vscode.commands.registerCommand(
     'repomixRunner.deleteBundle',
-    async (param: BundleTreeItem) => {
-      await deleteBundle(bundleManager, param.bundle);
+    async node => {
+      await deleteBundle(bundleManager, node);
     }
   );
 
-  const manageBundlesCommand = vscode.commands.registerCommand(
-    'repomixRunner.manageBundles',
-    manageBundles
-  );
-
-  const removeFileFromBundleCommand = vscode.commands.registerCommand(
-    'repomixRunner.removeFileFromBundle',
-    async (item: BundleTreeItem) => {
-      await removeFileFromBundle(bundleManager, item);
+  const selectActiveBundleCommand = vscode.commands.registerCommand(
+    'repomixRunner.selectActiveBundle',
+    async (treeNode: TreeNode) => {
+      await selectActiveBundle(treeNode, bundleManager);
     }
   );
 
-  // Create and register the bundle tree view
-  const bundleTreeView = vscode.window.createTreeView('repomixBundles', {
-    treeDataProvider: bundleTreeProvider,
-    showCollapseAll: true,
-  });
+  const refreshBundlesCommand = vscode.commands.registerCommand(
+    'repomixRunner.refreshBundles',
+    () => {
+      bundleDataProvider.forceRefresh();
+    }
+  );
 
+  const goToConfigFileCommand = vscode.commands.registerCommand(
+    'repomixRunner.goToConfigFile',
+    async (node: TreeNode) => {
+      await goToConfigFile(node.bundleId, {
+        cwd,
+        bundleManager,
+      });
+    }
+  );
+
+  // Ajouter toutes les souscriptions au contexte
   context.subscriptions.push(
+    goToConfigFileCommand,
     runRepomixCommand,
     openSettingsCommand,
     openOutputCommand,
     runRepomixOnOpenFilesCommand,
     runRepomixOnSelectedFilesCommand,
-    saveBundleCommand,
     runBundleCommand,
-    manageBundlesCommand,
+    editBundleCommand,
     deleteBundleCommand,
-    removeFileFromBundleCommand,
-    bundleTreeView
-  );
-
-  // Register bundle refresh command
-  context.subscriptions.push(
-    vscode.commands.registerCommand('repomixRunner.refreshBundles', () => {
-      bundleTreeProvider.refresh();
-    })
+    selectActiveBundleCommand,
+    createBundleCommand,
+    decorationProviderSubscription,
+    bundleTreeView,
+    addSelectedFilesToActiveBundleCommand,
+    addSelectedFilesToNewBundleCommand,
+    removeSelectedFilesFromExplorerToActiveBundleCommand,
+    removeSelectedFilesFromCustomViewToActiveBundleCommand,
+    refreshBundlesCommand
   );
 }
 

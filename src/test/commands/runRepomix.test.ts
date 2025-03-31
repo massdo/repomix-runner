@@ -18,6 +18,7 @@ suite('runRepomix', () => {
     targetDirBasename: 'target',
     targetPathRelative: 'target',
     runner: {
+      verbose: false,
       keepOutputFile: true,
       copyMode: 'file' as const,
       useTargetAsOutput: false,

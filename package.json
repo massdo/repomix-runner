@@ -9,11 +9,12 @@
     "type": "git",
     "url": "https://github.com/massdo/repomix-runner.git"
   },
-  "version": "0.3.1",
+  "version": "0.3.3",
   "engines": {
     "vscode": "^1.93.0"
   },
   "categories": [
+    "AI",
     "Other"
   ],
   "activationEvents": [],
@@ -51,6 +52,12 @@
             "type": "boolean",
             "default": true,
             "description": "📝 \n Use bundle name as output file name when running a bundle"
+          },
+          "repomix.runner.verbose": {
+            "order": 5,
+            "type": "boolean",
+            "default": false,
+            "description": "🔍 \n Verbose mode"
           }
         }
       },
@@ -228,14 +235,50 @@
     },
     "commands": [
       {
+        "command": "repomixRunner.editBundle",
+        "title": "Repomix: Edit Bundle",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "repomixRunner.goToConfigFile",
+        "title": "Repomix: Go to Bundle Config File",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "repomixRunner.removeSelectedFilesFromCustomViewToActiveBundle",
+        "title": "Repomix: Remove Selection from Active Bundle",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "repomixRunner.removeSelectedFilesFromActiveBundle",
+        "title": "Repomix: Remove Selection from Active Bundle",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "repomixRunner.addSelectedFilesToActiveBundle",
+        "title": "Repomix: Add to Active Bundle",
+        "icon": "$(plus)"
+      },
+      {
+        "command": "repomixRunner.addSelectedFilesToNewBundle",
+        "title": "Repomix: Create New Bundle with Selection",
+        "icon": "$(plus)"
+      },
+      {
+        "command": "repomixRunner.createBundle",
+        "title": "Repomix: Create New Bundle",
+        "icon": "$(plus)"
+      },
+      {
+        "command": "repomixRunner.selectActiveBundle",
+        "title": "Repomix: Select Active Bundle",
+        "icon": "$(search)"
+      },
+      {
         "command": "repomixRunner.run",
         "title": "Repomix: Run",
         "description": "Run repomix on the root folder of your project",
         "icon": "assets/repomix-logo.svg"
-      },
-      {
-        "command": "repomixRunner.saveBundle",
-        "title": "Repomix: Save Selection as Bundle"
       },
       {
         "command": "repomixRunner.runBundle",
@@ -247,11 +290,6 @@
         "title": "Repomix: Delete Bundle",
         "icon": "$(trash)",
         "enablement": "view == repomixBundles"
-      },
-      {
-        "command": "repomixRunner.manageBundles",
-        "title": "Repomix: Manage Bundles",
-        "icon": "$(gear)"
       },
       {
         "command": "repomixRunner.refreshBundles",
@@ -289,6 +327,12 @@
     "menus": {
       "view/title": [
         {
+          "command": "repomixRunner.createBundle",
+          "title": "Repomix: Create New Bundle",
+          "when": "view == repomixBundles",
+          "group": "navigation@0"
+        },
+        {
           "command": "repomixRunner.run",
           "title": "Repomix Run",
           "group": "navigation@1",
@@ -310,29 +354,33 @@
           "command": "repomixRunner.refreshBundles",
           "when": "view == repomixBundles",
           "group": "navigation@4"
-        },
-        {
-          "command": "repomixRunner.manageBundles",
-          "when": "view == repomixBundles",
-          "group": "navigation@3",
-          "icon": "$(gear)"
         }
       ],
       "view/item/context": [
         {
           "command": "repomixRunner.runBundle",
           "when": "viewItem == bundle",
-          "group": "inline"
+          "group": "inline@3"
+        },
+        {
+          "command": "repomixRunner.editBundle",
+          "when": "viewItem == bundle",
+          "group": "inline@2"
+        },
+        {
+          "command": "repomixRunner.goToConfigFile",
+          "when": "viewItem == bundle",
+          "group": "inline@1"
+        },
+        {
+          "command": "repomixRunner.removeSelectedFilesFromCustomViewToActiveBundle",
+          "when": "viewItem in activeBundleId",
+          "group": "inline@4"
         },
         {
           "command": "repomixRunner.deleteBundle",
           "when": "viewItem == bundle",
-          "group": "inline"
-        },
-        {
-          "command": "repomixRunner.removeFileFromBundle",
-          "when": "viewItem == bundleFile",
-          "group": "1_modification"
+          "group": "repomix@1"
         }
       ],
       "explorer/context": [
@@ -342,12 +390,46 @@
           "group": "repomix@1"
         },
         {
+          "command": "repomixRunner.addSelectedFilesToNewBundle",
           "when": "explorerResourceIsFolder || resourceLangId",
-          "command": "repomixRunner.saveBundle",
           "group": "repomix@2"
+        },
+        {
+          "command": "repomixRunner.addSelectedFilesToActiveBundle",
+          "when": "(explorerResourceIsFolder || resourceLangId) && activeBundleId",
+          "group": "repomix@2"
+        },
+        {
+          "command": "repomixRunner.removeSelectedFilesFromActiveBundle",
+          "when": "(explorerResourceIsFolder || resourceLangId ) && activeBundleId",
+          "group": "repomix@3"
         }
       ],
       "commandPalette": [
+        {
+          "command": "repomixRunner.selectActiveBundle",
+          "when": "never"
+        },
+        {
+          "command": "repomixRunner.goToConfigFile",
+          "when": "never"
+        },
+        {
+          "command": "repomixRunner.removeSelectedFilesFromActiveBundle",
+          "when": "never"
+        },
+        {
+          "command": "repomixRunner.removeSelectedFilesFromCustomViewToActiveBundle",
+          "when": "never"
+        },
+        {
+          "command": "repomixRunner.addSelectedFilesToActiveBundle",
+          "when": "never"
+        },
+        {
+          "command": "repomixRunner.addSelectedFilesToNewBundle",
+          "when": "never"
+        },
         {
           "command": "repomixRunner.runOnSelectedFiles",
           "when": "never"

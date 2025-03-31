@@ -42,7 +42,7 @@ export async function runRepomixOnSelectedFiles(
     ...(isDirectory ? {} : { include: selectedFiles }),
   };
 
-  runRepomix(targetDir, tempDirManager.getTempDir(), {
+  await runRepomix(targetDir, tempDirManager.getTempDir(), {
     ...defaultRunRepomixDeps,
     mergeConfigOverride: finalOverrideConfig,
   });

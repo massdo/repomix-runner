@@ -106,6 +106,7 @@ export const defaultRunnerCopyMode: Record<RunnerCopyMode, string> = {
 export const repomixRunnerConfigBaseSchema = z
   .object({
     runner: z.object({
+      verbose: z.boolean(),
       keepOutputFile: z.boolean(),
       copyMode: runnerCopyModeSchema,
       useTargetAsOutput: z.boolean(),
@@ -117,6 +118,7 @@ export const repomixRunnerConfigBaseSchema = z
 export const repomixRunnerConfigDefaultSchema = z
   .object({
     runner: z.object({
+      verbose: z.boolean().default(false),
       keepOutputFile: z.boolean().default(true),
       copyMode: runnerCopyModeSchema.default('file'),
       useTargetAsOutput: z.boolean().default(true),

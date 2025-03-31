@@ -280,4 +280,22 @@ suite('CliFlagsBuilder', () => {
     assert.ok(flags.includes('--no-security-check'));
     assert.ok(flags.includes('--compress'));
   });
+
+  test('should normalize Windows paths with backslashes in config.include', () => {
+    const config: MergedConfig = {
+      ...baseConfig,
+      include: [
+        'path\\to\\file.js',
+        'another\\path\\file.ts',
+        '\\root\\path.js',
+        'mixed/path\\with/backslash.js',
+      ],
+    };
+    const flags = cliFlagsBuilder(config);
+    assert.ok(
+      flags.includes(
+        '--include "path/to/file.js,another/path/file.ts,/root/path.js,mixed/path/with/backslash.js"'
+      )
+    );
+  });
 });

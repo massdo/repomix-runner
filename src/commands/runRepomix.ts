@@ -13,6 +13,8 @@ import { readRepomixRunnerVscodeConfig } from '../config/configLoader.js';
 import { tempDirManager } from '../core/files/tempDirManager.js';
 import { RepomixConfigFile } from '../config/configSchema.js';
 
+let isRunning = false;
+
 export type RunRepomixDeps = {
   getCwd: typeof getCwd;
   copyToClipboard: typeof copyToClipboard;
@@ -42,28 +44,37 @@ export async function runRepomix(
   tempDir: string,
   deps: RunRepomixDeps = defaultRunRepomixDeps
 ): Promise<void> {
-  const cwd = deps.getCwd();
-
-  // Load config and write repomix command with corresponding flags
-  const vscodeConfig = deps.readRepomixRunnerVscodeConfig();
-  const configFile = await deps.readRepomixFileConfig(cwd);
-  const config = deps.mergeConfigs(
-    cwd,
-    configFile,
-    vscodeConfig,
-    targetDir,
-    deps.mergeConfigOverride
-  );
-
-  const cliFlags = deps.cliFlagsBuilder(config);
-
-  const cmd = `npx -y repomix@latest "${config.targetDir}" ${cliFlags}`;
-
-  logger.both.debug('config: \n', config);
-  logger.both.debug('cmd: \n', cmd);
-  logger.both.debug('cwd: \n', cwd);
+  if (isRunning) {
+    return;
+  }
+  isRunning = true;
 
   try {
+    const cwd = deps.getCwd();
+
+    const vscodeConfig = deps.readRepomixRunnerVscodeConfig();
+    logger.setVerbose(vscodeConfig.runner.verbose);
+
+    const configFile = await deps.readRepomixFileConfig(cwd);
+    if (!configFile) {
+      logger.both.debug('No root repomix.config.json file found');
+    }
+
+    const config = deps.mergeConfigs(
+      cwd,
+      configFile,
+      vscodeConfig,
+      targetDir,
+      deps.mergeConfigOverride
+    );
+
+    const cliFlags = deps.cliFlagsBuilder(config);
+
+    const cmd = `npx -y repomix@latest "${config.targetDir}" ${cliFlags}`;
+
+    logger.both.debug('config: \n', config);
+    logger.both.debug('cmd: \n', cmd);
+    logger.both.debug('cwd: \n', cwd);
     const cmdPromise = deps.execPromisify(cmd, { cwd: cwd });
 
     showTempNotification(`⚙️ Running Repomix in "${config.targetDirBasename}" ...`, {
@@ -103,9 +114,12 @@ export async function runRepomix(
     tempDirManager.cleanupFile(tmpFilePath).catch(error => {
       logger.both.error('Error cleaning up temp file:', error);
     });
+
+    isRunning = false;
   } catch (error: any) {
     logger.both.error(error);
     vscode.window.showErrorMessage(error.message);
+    isRunning = false;
     throw error;
   }
 }

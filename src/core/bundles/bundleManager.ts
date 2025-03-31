@@ -1,14 +1,14 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { logger } from '../../shared/logger.js';
 import { Bundle, BundleMetadata } from './types.js';
-import { showTempNotification } from '../../shared/showTempNotification.js';
-import { bundleTreeProvider } from './bundleTreeProvider.js';
 
 export class BundleManager {
   private readonly repomixDir: string;
   private readonly bundlesFile: string;
+  readonly onDidChangeBundles = new vscode.EventEmitter<void>();
+  readonly onDidChangeActiveBundle = new vscode.EventEmitter<string | null>();
+  private _activeBundleId: string | null = null;
 
   constructor(workspaceRoot: string) {
     this.repomixDir = path.join(workspaceRoot, '.repomix');
@@ -18,84 +18,91 @@ export class BundleManager {
   async initialize(): Promise<void> {
     try {
       await fs.mkdir(this.repomixDir, { recursive: true });
-
       try {
         await fs.access(this.bundlesFile);
       } catch {
-        // File doesn't exist, create it
         await fs.writeFile(this.bundlesFile, JSON.stringify({ bundles: {} }, null, 2));
       }
     } catch (error) {
-      logger.both.error('Failed to initialize bundle storage:', error);
+      console.error('Failed to initialize bundle storage:', error);
       throw error;
     }
+  }
+
+  async setActiveBundle(bundleId: string | null): Promise<void> {
+    await vscode.commands.executeCommand(
+      'setContext',
+      'activeBundleId',
+      bundleId ? [bundleId] : null
+    );
+
+    this._activeBundleId = bundleId;
+    this.onDidChangeActiveBundle.fire(bundleId);
+  }
+
+  getActiveBundleId(): string | null {
+    return this._activeBundleId;
+  }
+
+  async getActiveBundle(): Promise<Bundle | undefined> {
+    if (!this._activeBundleId) {
+      return;
+    }
+
+    return await this.getBundle(this._activeBundleId);
   }
 
   async getAllBundles(): Promise<BundleMetadata> {
     try {
-      await this.initialize(); // Make sure the file exists
+      await this.initialize();
       const content = await fs.readFile(this.bundlesFile, 'utf-8');
       return JSON.parse(content);
     } catch (error) {
-      logger.both.error('Failed to read bundles:', error);
+      console.error('Failed to read bundles:', error);
       throw error;
     }
   }
 
-  async saveBundle(bundle: Bundle): Promise<void> {
+  async getBundle(bundleId: string): Promise<Bundle> {
     try {
-      const metadata = await this.getAllBundles();
-      metadata.bundles[bundle.name] = bundle;
-      await fs.writeFile(this.bundlesFile, JSON.stringify(metadata, null, 2));
-      bundleTreeProvider.refresh();
+      const { bundles } = await this.getAllBundles();
+      return bundles[bundleId];
     } catch (error) {
-      logger.both.error('Failed to save bundle:', error);
+      console.error('Failed to get bundle:', error);
       throw error;
     }
   }
 
-  async deleteBundle(bundleName: string): Promise<void> {
+  async saveBundle(id: string, payload: Bundle): Promise<void> {
     try {
-      const metadata = await this.getAllBundles();
-      delete metadata.bundles[bundleName];
+      const { bundles } = await this.getAllBundles();
+      bundles[id] = payload;
+
+      const metadata: BundleMetadata = { bundles: bundles };
+
       await fs.writeFile(this.bundlesFile, JSON.stringify(metadata, null, 2));
-      bundleTreeProvider.refresh();
+
+      this.onDidChangeBundles.fire();
     } catch (error) {
-      logger.both.error('Failed to delete bundle:', error);
+      console.error('Failed to save bundle:', error);
       throw error;
     }
   }
 
-  async selectBundle(): Promise<Bundle | undefined> {
-    const metadata = await this.getAllBundles();
-    const bundleNames = Object.keys(metadata.bundles);
+  async deleteBundle(id: string): Promise<void> {
+    try {
+      const { bundles } = await this.getAllBundles();
+      delete bundles[id];
 
-    if (bundleNames.length === 0) {
-      showTempNotification(
-        'No bundles found. Create a bundle first by selecting files and using "Save as Bundle".'
-      );
-      return undefined;
+      const metadata: BundleMetadata = { bundles: bundles };
+
+      await fs.writeFile(this.bundlesFile, JSON.stringify(metadata, null, 2));
+
+      this.setActiveBundle(null);
+      this.onDidChangeBundles.fire();
+    } catch (error) {
+      console.error('Failed to delete bundle:', error);
+      throw error;
     }
-
-    const items = bundleNames.map(name => {
-      const bundle = metadata.bundles[name];
-      return {
-        label: name,
-        description: bundle.description || '',
-        detail: `${bundle.files.length} files • ${bundle.tags.join(', ')}`,
-        bundle: bundle,
-      };
-    });
-
-    const selected = await vscode.window.showQuickPick(items, {
-      placeHolder: 'Select a bundle to run',
-      title: 'Run Repomix Bundle',
-    });
-
-    if (!selected) {
-      return undefined;
-    }
-
-    return selected.bundle;
   }
 }
