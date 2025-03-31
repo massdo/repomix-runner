@@ -13,7 +13,10 @@ import { BundleManager } from './core/bundles/bundleManager.js';
 import { BundleFileDecorationProvider } from './core/bundles/bundleFileDecorationProvider.js';
 import { selectActiveBundle } from './commands/selectActiveBundle.js';
 import { createBundle } from './commands/createBundle.js';
-import { mutateActiveBundle } from './commands/mutateActiveBundle.js';
+import {
+  addFilesToActiveBundle,
+  removeFilesFromActiveBundle,
+} from './commands/mutateActiveBundle.js';
 import { editBundle } from './commands/editBundle.js';
 import { goToConfigFile } from './commands/goToConfigFile.js';
 
@@ -46,10 +49,9 @@ export function activate(context: vscode.ExtensionContext) {
         return;
       }
 
-      await mutateActiveBundle(selectedUris, {
+      await addFilesToActiveBundle(selectedUris, {
         bundleManager: bundleManager,
         cwd,
-        action: 'add',
       });
     }
   );
@@ -59,10 +61,9 @@ export function activate(context: vscode.ExtensionContext) {
     async (uri: vscode.Uri, uris: vscode.Uri[]) => {
       const selectedUris = uris || (uri ? [uri] : []);
 
-      await mutateActiveBundle(selectedUris, {
+      await addFilesToActiveBundle(selectedUris, {
         bundleManager: bundleManager,
         cwd,
-        action: 'add',
       });
     }
   );
@@ -72,10 +73,9 @@ export function activate(context: vscode.ExtensionContext) {
     async (uri: vscode.Uri, uris: vscode.Uri[]) => {
       const selectedUris = uris || (uri ? [uri] : []);
 
-      await mutateActiveBundle(selectedUris, {
+      await removeFilesFromActiveBundle(selectedUris, {
         bundleManager: bundleManager,
         cwd,
-        action: 'remove',
       });
     }
   );
@@ -89,10 +89,9 @@ export function activate(context: vscode.ExtensionContext) {
 
       const uri = node.resourceUri;
 
-      await mutateActiveBundle([uri], {
+      await removeFilesFromActiveBundle([uri], {
         bundleManager: bundleManager,
         cwd,
-        action: 'remove',
       });
     }
   );
