@@ -36,7 +36,7 @@ export const cliFlags = {
 export function cliFlagsBuilder(config: MergedConfig, flags = cliFlags): string {
   const outputFlags: string[] = [];
 
-  // REFACTOR si une clée de config n'est pas dans le la flagsmapping alors on le log en disant la config n'est pas supportée
+  // TODO si une clée de config n'est pas dans le la flagsmapping alors on le log en disant la config n'est pas supportée
 
   // Output
   if (config.output.filePath) {

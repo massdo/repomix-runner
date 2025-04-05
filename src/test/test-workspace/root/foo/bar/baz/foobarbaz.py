@@ -1,1 +1,1 @@
-console.log("foobarbaz");
+print("foobarbaz")

@@ -130,9 +130,7 @@ export const repomixRunnerConfigDefaultSchema = z
 // Merged config schema
 export const mergedConfigSchema = repomixRunnerConfigDefaultSchema.and(
   z.object({
-    targetDirBasename: z.string(),
-    targetDir: z.string(),
-    targetPathRelative: z.string(),
+    cwd: z.string(),
   })
 );
 

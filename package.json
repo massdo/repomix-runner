@@ -44,7 +44,7 @@
           "repomix.runner.useTargetAsOutput": {
             "order": 2,
             "type": "boolean",
-            "default": true,
+            "default": false,
             "description": "🎯 ➡️  🎯 \n Use the targetted folder as the output folder"
           },
           "repomix.runner.useBundleNameAsOutputName": {

@@ -236,7 +236,7 @@ suite('configLoader', () => {
      * 5. Assert that the merged configuration's target directory basename is correctly set.
      * 6. Verify that the output style in the merged configuration is set correctly.
      */
-    test('repomix.config.json should override vscode settings', () => {
+    test('repomix.config.json should override vscode settings', async () => {
       const vscodeConfig: RepomixRunnerConfigDefault = {
         runner: {
           verbose: false,
@@ -294,11 +294,10 @@ suite('configLoader', () => {
         },
       };
 
-      const merged = mergeConfigs(testCwd, fileConfig, vscodeConfig, targetDir);
+      const merged = await mergeConfigs(testCwd, fileConfig, vscodeConfig, null);
 
-      assert.ok(merged.targetDir === targetDir);
-      assert.ok(merged.targetDirBasename === path.relative(testCwd, targetDir));
-      assert.ok(merged.output.style === 'plain'); // xml from vscode settings is overridden by plain from repomix.config.json
+      assert.ok(merged.cwd === testCwd);
+      assert.ok(merged.output.style === 'plain');
       assert.ok(merged.output.headerText === 'coucou');
       assert.ok(merged.output.parsableStyle === true);
       assert.ok(merged.output.instructionFilePath === 'instruction.txt');
@@ -317,7 +316,7 @@ suite('configLoader', () => {
      * 2. Merge the configurations
      * 3. Verify that the final output path is correctly set relative to the target directory
      */
-    test('should set output path relative to the target directory if config.runner.useTargetAsOutput is true', () => {
+    test('should set output path relative to the target directory if config.runner.useTargetAsOutput is true', async () => {
       const vscodeConfig: RepomixRunnerConfigDefault = {
         ...defaultConfig,
         runner: {
@@ -336,11 +335,13 @@ suite('configLoader', () => {
         },
       };
 
-      const merged = mergeConfigs(testCwd, fileConfig, vscodeConfig, targetDir);
+      const merged = await mergeConfigs(testCwd, fileConfig, vscodeConfig, {
+        include: ['foo/bar'],
+      });
       assert.ok(path.relative(testCwd, merged.output.filePath) === 'foo/bar/custom.txt');
     });
 
-    test('should not set output path relative to the target directory if config.runner.useTargetAsOutput is false', () => {
+    test('should not set output path relative to the target directory if config.runner.useTargetAsOutput is false', async () => {
       const vscodeConfig: RepomixRunnerConfigDefault = {
         ...defaultConfig,
         runner: {
@@ -358,42 +359,9 @@ suite('configLoader', () => {
           filePath: 'custom.txt',
         },
       };
-
-      const merged = mergeConfigs(testCwd, fileConfig, vscodeConfig, targetDir);
+      testCwd = '/test/cwd';
+      const merged = await mergeConfigs(testCwd, fileConfig, vscodeConfig, null);
       assert.ok(path.relative(testCwd, merged.output.filePath) === 'custom.txt');
-    });
-
-    /**
-     * Test to verify that when the copyMode is set to 'file', the copied file name
-     * should be the relative target directory path combined with the config.output.filePath.
-     *
-     * Steps:
-     * 1. Create a VSCode configuration with copyMode set to 'file' and useTargetAsOutput set to true.
-     * 2. Merge this configuration with an empty file configuration.
-     * 3. Assert that the merged configuration's targetPathRelative is 'foo/bar/output.txt'.
-     *
-     * Possible Failures:
-     * - The test may fail if the mergeConfigs function does not correctly prioritize the VSCode configuration
-     *   when the file configuration is empty.
-     * - The test may also fail if the path resolution logic in mergeConfigs is incorrect.
-     */
-    test('when copyMode is file, copied file name should be the reelative target dir path + config.output.filePath', () => {
-      const vscodeConfig: RepomixRunnerConfigDefault = {
-        ...defaultConfig,
-        runner: {
-          ...defaultConfig.runner,
-          copyMode: 'file',
-          useTargetAsOutput: true,
-        },
-        output: {
-          ...defaultConfig.output,
-          filePath: 'output.txt',
-        },
-      };
-
-      const fileConfig: RepomixConfigFile = {};
-      const merged = mergeConfigs(testCwd, fileConfig, vscodeConfig, targetDir);
-      assert.strictEqual(merged.targetPathRelative, 'foo/bar/output.txt');
     });
 
     /**
@@ -411,7 +379,7 @@ suite('configLoader', () => {
      *   over the VSCode configuration.
      * - The test may also fail if the path resolution logic in mergeConfigs is incorrect.
      */
-    test('when copyMode is file, repomix.config.json should override vscode settings', () => {
+    test('when copyMode is file, repomix.config.json should override vscode settings', async () => {
       const vscodeConfig: RepomixRunnerConfigDefault = {
         ...defaultConfig,
         runner: {
@@ -426,8 +394,8 @@ suite('configLoader', () => {
       };
 
       const fileConfig: RepomixConfigFile = { output: { filePath: 'repomixFileOutput.txt' } };
-      const merged = mergeConfigs(testCwd, fileConfig, vscodeConfig, targetDir);
-      assert.strictEqual(merged.targetPathRelative, 'foo/bar/repomixFileOutput.txt');
+      const merged = await mergeConfigs(testCwd, fileConfig, vscodeConfig, null);
+      assert.strictEqual(path.basename(merged.output.filePath), 'repomixFileOutput.txt');
     });
 
     /**
@@ -449,7 +417,7 @@ suite('configLoader', () => {
      * - The test may also fail if the mergeConfigs function does not correctly handle an empty file configuration,
      *   resulting in incorrect defaults from the VSCode configuration.
      */
-    test('repomix.config.json file should override vscode settings for include and ignore patterns', () => {
+    test('repomix.config.json file should override vscode settings for include and ignore patterns', async () => {
       const vscodeConfig: RepomixRunnerConfigDefault = {
         ...defaultConfig,
         include: ['**/*.txt'],
@@ -466,15 +434,84 @@ suite('configLoader', () => {
           customPatterns: ['**/*.ts'],
         },
       };
-
-      const merged = mergeConfigs(testCwd, fileConfig, vscodeConfig, targetDir);
+      const merged = await mergeConfigs(testCwd, fileConfig, vscodeConfig, null);
       assert.deepStrictEqual(merged.include, ['**/*.js']);
       assert.deepStrictEqual(merged.ignore.customPatterns, ['**/*.ts']);
 
       const fileconfigEmpty = {};
-      const mergedEmpty = mergeConfigs(testCwd, fileconfigEmpty, vscodeConfig, targetDir);
+      const mergedEmpty = await mergeConfigs(testCwd, fileconfigEmpty, vscodeConfig, null);
       assert.deepStrictEqual(mergedEmpty.include, ['**/*.txt']);
       assert.deepStrictEqual(mergedEmpty.ignore.customPatterns, ['**/*.md']);
+    });
+
+    test('overrideConfig should override all previous configurations', async () => {
+      const vscodeConfig: RepomixRunnerConfigDefault = {
+        ...defaultConfig,
+        runner: {
+          ...defaultConfig.runner,
+          verbose: false,
+          keepOutputFile: false,
+        },
+        output: {
+          ...defaultConfig.output,
+          style: 'xml',
+          filePath: 'vscode-output.txt',
+          showLineNumbers: false,
+        },
+        include: ['**/*.vscode'],
+        ignore: {
+          useGitignore: true,
+          useDefaultPatterns: true,
+          customPatterns: ['**/*.vscode.ignore'],
+        },
+        tokenCount: {
+          encoding: 'o200k_base',
+        },
+      };
+
+      const fileConfig: RepomixConfigFile = {
+        output: {
+          style: 'markdown',
+          filePath: 'file-output.md',
+        },
+        include: ['**/*.file'],
+        ignore: {
+          useGitignore: false,
+          customPatterns: ['**/*.file.ignore'],
+        },
+        tokenCount: {
+          encoding: 'gpt2',
+        },
+      };
+
+      const overrideConfig: RepomixConfigFile = {
+        output: {
+          style: 'plain',
+          filePath: 'override-output.txt',
+          showLineNumbers: true,
+        },
+        include: ['**/*.override'],
+        ignore: {
+          useGitignore: true,
+          useDefaultPatterns: false,
+          customPatterns: ['**/*.override.ignore'],
+        },
+        tokenCount: {
+          encoding: 'cl100k_base',
+        },
+      };
+
+      const merged = await mergeConfigs(testCwd, fileConfig, vscodeConfig, overrideConfig);
+
+      // Check that overrideConfig values are applied
+      assert.strictEqual(merged.output.style, 'plain');
+      assert.strictEqual(path.basename(merged.output.filePath), 'override-output.txt');
+      assert.strictEqual(merged.output.showLineNumbers, true);
+      assert.deepStrictEqual(merged.include, ['**/*.override']);
+      assert.strictEqual(merged.ignore.useGitignore, true);
+      assert.strictEqual(merged.ignore.useDefaultPatterns, false);
+      assert.deepStrictEqual(merged.ignore.customPatterns, ['**/*.override.ignore']);
+      assert.strictEqual(merged.tokenCount.encoding, 'cl100k_base');
     });
 
     /**
@@ -494,7 +531,7 @@ suite('configLoader', () => {
     ];
 
     styleExtensionTests.forEach(({ style, extension }) => {
-      test(`should handle ${style} style file extension correctly`, () => {
+      test(`should handle ${style} style file extension correctly`, async () => {
         // Test without extension
         const configWithoutExt: RepomixRunnerConfigDefault = {
           ...defaultConfig,
@@ -504,7 +541,7 @@ suite('configLoader', () => {
             filePath: 'output',
           },
         };
-        const mergedWithoutExt = mergeConfigs(testCwd, {}, configWithoutExt, targetDir);
+        const mergedWithoutExt = await mergeConfigs(testCwd, {}, configWithoutExt, null);
         assert.strictEqual(path.basename(mergedWithoutExt.output.filePath), `output${extension}`);
 
         // Test with correct extension already set, it should not be overridden twice
@@ -516,7 +553,7 @@ suite('configLoader', () => {
             filePath: `output${extension}`,
           },
         };
-        const mergedWithExt = mergeConfigs(testCwd, {}, configWithExt, targetDir);
+        const mergedWithExt = await mergeConfigs(testCwd, {}, configWithExt, null);
         assert.strictEqual(path.basename(mergedWithExt.output.filePath), `output${extension}`);
       });
     });

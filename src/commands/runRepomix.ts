@@ -10,12 +10,13 @@ import { cliFlagsBuilder } from '../core/cli/cliFlagsBuilder.js';
 import { showTempNotification } from '../shared/showTempNotification.js';
 import { readRepomixFileConfig } from '../config/configLoader.js';
 import { readRepomixRunnerVscodeConfig } from '../config/configLoader.js';
-import { tempDirManager } from '../core/files/tempDirManager.js';
-import { RepomixConfigFile } from '../config/configSchema.js';
+import { tempDirManager, TempDirManager } from '../core/files/tempDirManager.js';
+import { MergedConfig, RepomixConfigFile } from '../config/configSchema.js';
 
 let isRunning = false;
 
 export type RunRepomixDeps = {
+  tempDirManager: TempDirManager;
   getCwd: typeof getCwd;
   copyToClipboard: typeof copyToClipboard;
   cleanOutputFile: typeof cleanOutputFile;
@@ -28,6 +29,7 @@ export type RunRepomixDeps = {
 };
 
 export const defaultRunRepomixDeps: RunRepomixDeps = {
+  tempDirManager,
   getCwd,
   copyToClipboard,
   cleanOutputFile,
@@ -39,11 +41,7 @@ export const defaultRunRepomixDeps: RunRepomixDeps = {
   mergeConfigOverride: null,
 } as const;
 
-export async function runRepomix(
-  targetDir: string,
-  tempDir: string,
-  deps: RunRepomixDeps = defaultRunRepomixDeps
-): Promise<void> {
+export async function runRepomix(deps: RunRepomixDeps = defaultRunRepomixDeps): Promise<void> {
   if (isRunning) {
     return;
   }
@@ -60,24 +58,18 @@ export async function runRepomix(
       logger.both.debug('No root repomix.config.json file found');
     }
 
-    const config = deps.mergeConfigs(
-      cwd,
-      configFile,
-      vscodeConfig,
-      targetDir,
-      deps.mergeConfigOverride
-    );
+    const config = await deps.mergeConfigs(cwd, configFile, vscodeConfig, deps.mergeConfigOverride);
 
     const cliFlags = deps.cliFlagsBuilder(config);
 
-    const cmd = `npx -y repomix@latest "${config.targetDir}" ${cliFlags}`;
+    const cmd = `npx -y repomix@latest "${config.cwd}" ${cliFlags}`;
 
     logger.both.debug('config: \n', config);
     logger.both.debug('cmd: \n', cmd);
     logger.both.debug('cwd: \n', cwd);
     const cmdPromise = deps.execPromisify(cmd, { cwd: cwd });
 
-    showTempNotification(`⚙️ Running Repomix in "${config.targetDirBasename}" ...`, {
+    showTempNotification(`⚙️ Running Repomix in "${path.basename(cwd)}" please wait ...`, {
       promise: cmdPromise,
     });
 
@@ -92,20 +84,21 @@ export async function runRepomix(
       throw new Error(stderr);
     }
 
-    const tmpFilePath = path.join(tempDir, config.targetPathRelative.split('/').join('_'));
+    const tmpFilePath = path.join(
+      deps.tempDirManager.getTempDir(),
+      `${Date.now().toString().slice(-3)}_${path.basename(config.output.filePath)}`
+    );
 
     if (config.output.copyToClipboard && config.runner.copyMode === 'file') {
       await deps.copyToClipboard(config.output.filePath, tmpFilePath);
     }
 
-    showTempNotification(
-      `✅ Repomix successfully executed in "${config.targetDirBasename}",
-       details in output`,
-      {
-        duration: 3000,
-        cancellable: true,
-      }
-    );
+    const notifContent = generateNotifContent(cwd, config);
+
+    showTempNotification(notifContent, {
+      duration: 15000,
+      cancellable: true,
+    });
 
     if (!config.runner.keepOutputFile) {
       await deps.cleanOutputFile(config.output.filePath);
@@ -122,4 +115,22 @@ export async function runRepomix(
     isRunning = false;
     throw error;
   }
+}
+
+function generateNotifContent(cwd: string, config: MergedConfig): string {
+  let message = `✅ Repomix successfully executed in "${path.basename(config.cwd)}"`;
+
+  if (config.output.copyToClipboard && config.runner.copyMode === 'file') {
+    message += `, ✅ output Copied to clipboard as File`;
+  }
+
+  if (config.output.copyToClipboard && config.runner.copyMode === 'content') {
+    message += `, ✅ output Copied to clipboard as raw Text`;
+  }
+
+  if (config.runner.keepOutputFile) {
+    message += ` ➡️ output path: "${path.relative(cwd, config.output.filePath)}"`;
+  }
+
+  return message;
 }

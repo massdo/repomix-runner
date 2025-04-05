@@ -1,6 +1,5 @@
 import { runRepomix } from './runRepomix.js';
 import { getCwd } from '../config/getCwd.js';
-import { tempDirManager } from '../core/files/tempDirManager.js';
 import { defaultRunRepomixDeps } from './runRepomix.js';
 import { getOpenFiles } from '../config/getOpenFiles.js';
 import { logger } from '../shared/logger.js';
@@ -22,7 +21,7 @@ export async function runRepomixOnOpenFiles() {
 
   logger.both.info(`Running repomix on open files: ${openFiles.join(', ')}`);
 
-  runRepomix(cwd, tempDirManager.getTempDir(), {
+  runRepomix({
     ...defaultRunRepomixDeps,
     mergeConfigOverride: overrideConfig,
   });

@@ -26,6 +26,7 @@ export async function runBundle(bundleManager: BundleManager, bundleId: string) 
   }
 
   if (config.runner.useBundleNameAsOutputName) {
+    // TODO revoir
     if (overrideConfig.output?.filePath) {
       overrideConfig.output.filePath = overrideConfig.output?.filePath + bundle.name;
     }

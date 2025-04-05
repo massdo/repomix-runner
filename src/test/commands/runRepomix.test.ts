@@ -1,8 +1,10 @@
 import * as assert from 'assert';
+import * as path from 'node:path';
 import { runRepomix } from '../../commands/runRepomix.js';
 import { type ChildProcess, type ExecOptions } from 'child_process';
 import { execPromisify } from '../../shared/execPromisify.js';
 import { MergedConfig } from '../../config/configSchema.js';
+import { tempDirManager } from '../../core/files/tempDirManager.js';
 
 type PromiseWithChild<T> = Promise<T> & { child: ChildProcess };
 
@@ -14,9 +16,7 @@ suite('runRepomix', () => {
   }) as unknown as typeof execPromisify;
 
   const baseTestConfig: MergedConfig = {
-    targetDir: '/fake/target',
-    targetDirBasename: 'target',
-    targetPathRelative: 'target',
+    cwd: '/fake/target',
     runner: {
       verbose: false,
       keepOutputFile: true,
@@ -60,13 +60,14 @@ suite('runRepomix', () => {
     };
 
     const mockDeps = {
-      getCwd: () => '/fake/cwd',
+      tempDirManager: tempDirManager,
+      getCwd: () => baseTestConfig.cwd,
       copyToClipboard: (...args: any[]) => {
         copyToClipboardCalled = true;
         copyToClipboardArgs = args;
         return Promise.resolve();
       },
-      mergeConfigs: () => mockConfig,
+      mergeConfigs: () => Promise.resolve(mockConfig),
       readRepomixRunnerVscodeConfig: () => mockConfig,
       readRepomixFileConfig: () => Promise.resolve(),
       cliFlagsBuilder: () => '',
@@ -76,18 +77,20 @@ suite('runRepomix', () => {
     };
 
     // Execute
-    await runRepomix('/fake/target', '/fake/temp', mockDeps);
+    await runRepomix(mockDeps);
 
     // Assert
     assert.strictEqual(copyToClipboardCalled, true, 'copyToClipboard should have been called');
     assert.strictEqual(
-      copyToClipboardArgs[0],
-      '/fake/output.txt',
+      path.basename(copyToClipboardArgs[0]),
+      path.basename(baseTestConfig.output.filePath),
       'copyToClipboard should be called with correct file path'
     );
     assert.ok(
-      copyToClipboardArgs[1].includes('/fake/temp'),
-      'copyToClipboard temp file should contain /fake/temp'
+      new RegExp(`^[0-9]{3}_${path.basename(baseTestConfig.output.filePath)}$`).test(
+        path.basename(copyToClipboardArgs[1])
+      ),
+      'copyToClipboard temp file should contain <3digit>_<fileName> format'
     );
   });
 
@@ -105,13 +108,14 @@ suite('runRepomix', () => {
     };
 
     const mockDeps = {
+      tempDirManager: tempDirManager,
       getCwd: () => '/fake/cwd',
       cleanOutputFile: (...args: any[]) => {
         cleanOutputFileCalled = true;
         cleanOutputFileArgs = args;
         return Promise.resolve();
       },
-      mergeConfigs: () => mockConfig,
+      mergeConfigs: () => Promise.resolve(mockConfig),
       readRepomixRunnerVscodeConfig: () => mockConfig,
       readRepomixFileConfig: () => Promise.resolve(),
       cliFlagsBuilder: () => '',
@@ -121,7 +125,7 @@ suite('runRepomix', () => {
     };
 
     // Execute
-    await runRepomix('/fake/target', '/fake/temp', mockDeps);
+    await runRepomix(mockDeps);
 
     // Assert
     assert.strictEqual(cleanOutputFileCalled, true, 'cleanOutputFile should have been called');

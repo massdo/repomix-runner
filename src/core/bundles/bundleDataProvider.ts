@@ -44,8 +44,6 @@ export class BundleDataProvider implements vscode.TreeDataProvider<TreeNode> {
     this.initialize();
   }
 
-  // faire une fonction init des events handler pour eviter le !
-
   public async initialize(): Promise<void> {
     await this._loadBundles();
     this._isLoading = false;
@@ -53,10 +51,8 @@ export class BundleDataProvider implements vscode.TreeDataProvider<TreeNode> {
   }
 
   public setTreeView(treeView: vscode.TreeView<TreeNode>) {
-    // setter to avoid circular dependency
     treeView.onDidChangeCheckboxState(event => {
       const [treeItem, checkboxState] = event.items[0];
-      console.log('treeItem', treeItem);
       if (checkboxState === vscode.TreeItemCheckboxState.Checked) {
         this._bundleExplorerManager.setActiveBundle(treeItem.bundleId);
       } else {
@@ -66,7 +62,6 @@ export class BundleDataProvider implements vscode.TreeDataProvider<TreeNode> {
   }
 
   public setDecorationProvider(decorationProvider: BundleFileDecorationProvider) {
-    // setter to avoid circular dependency
     this._decorationProvider = decorationProvider;
   }
 

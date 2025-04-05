@@ -1,1 +1,7 @@
-console.log("roofile");
+package main
+
+import "fmt"
+
+func main() {
+    fmt.Println("roofile")
+}

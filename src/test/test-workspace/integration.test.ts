@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { join } from 'node:path';
+import * as path from 'node:path';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { deleteFiles, waitForFile } from '../utilsTest.js';
 import { execPromisify } from '../../shared/execPromisify.js';
@@ -43,17 +43,20 @@ suite('Extension Test Suite', () => {
   });
 
   setup(async () => {
-    deleteFiles(join(workspacePath, '**/*.test*'));
+    deleteFiles(path.join(workspacePath, '**/*.test*'));
   });
 
   teardown(async () => {
-    deleteFiles(join(workspacePath, '**/*.test*'));
+    deleteFiles(path.join(workspacePath, '**/*.test*'));
     // Clean up any test bundles
-    const repomixDir = join(workspacePath, '.repomix');
+    const repomixDir = path.join(workspacePath, '.repomix');
     try {
-      writeFileSync(join(repomixDir, 'bundles.json'), JSON.stringify({ bundles: {} }, null, 2));
+      writeFileSync(
+        path.join(repomixDir, 'bundles.json'),
+        JSON.stringify({ bundles: {} }, null, 2)
+      );
     } catch (error) {
-      // Ignore
+      console.log('Error cleaning up test bundles', error);
     }
   });
 
@@ -70,13 +73,12 @@ suite('Extension Test Suite', () => {
 
   test('run repomixRunner.run command and verify file creation for the whole workspace', async function () {
     this.timeout(10000);
-    await compareGeneratedFiles('');
+    await compareGeneratedFiles('', 'run');
   });
 
-  test('run repomixRunner.run at root/foo/bar/baz and verify file creation for this directory', async function () {
+  test('run repomixRunner.runOnSelectedFiles at root/foo/bar/baz and verify file creation for this directory', async function () {
     this.timeout(10000);
-    // REFACTOR flaky test ?
-    await compareGeneratedFiles('foo/bar/baz/');
+    await compareGeneratedFiles('foo/bar/baz/', 'runOnSelectedFiles');
   });
 
   test('removeSelectionFromActiveBundleCommand should remove the selected file or directory from the bundle', async function () {
@@ -217,12 +219,12 @@ suite('Extension Test Suite', () => {
         (testScenario.name ? ` for scenario: ${testScenario.name}` : '')
     );
 
-    const repomixDir = join(workspacePath, '.repomix');
+    const repomixDir = path.join(workspacePath, '.repomix');
     if (!existsSync(repomixDir)) {
       mkdirSync(repomixDir, { recursive: true });
     }
 
-    const bundlesFilePath = join(repomixDir, 'bundles.json');
+    const bundlesFilePath = path.join(repomixDir, 'bundles.json');
 
     writeFileSync(bundlesFilePath, JSON.stringify(testScenario.initialBundle, null, 2));
 
@@ -236,7 +238,7 @@ suite('Extension Test Suite', () => {
     await vscode.commands.executeCommand('repomixRunner.selectActiveBundle', mockTreeNode);
 
     const targetFile = testScenario.targetFile;
-    const fileUri = vscode.Uri.file(join(workspacePath, targetFile));
+    const fileUri = vscode.Uri.file(path.join(workspacePath, targetFile));
 
     try {
       await vscode.workspace.fs.stat(fileUri);
@@ -289,13 +291,16 @@ suite('Extension Test Suite', () => {
    *
    * @param {string} targetDirectory - The target directory within the workspace to run the commands on.
    */
-  async function compareGeneratedFiles(targetDirectory: string) {
-    const subDirectoryPath = join(workspacePath, targetDirectory);
+  async function compareGeneratedFiles(
+    targetDirectory: string,
+    command: 'run' | 'runOnSelectedFiles'
+  ) {
+    const subDirectoryPath = path.join(workspacePath, targetDirectory);
     const uri = vscode.Uri.file(subDirectoryPath);
 
     // run the extension on the subdirectory
-    await vscode.commands.executeCommand('repomixRunner.run', uri);
-    const extentionGeneratedFilePath = join(subDirectoryPath, 'extension-data.test.txt');
+    await vscode.commands.executeCommand(`repomixRunner.${command}`, uri);
+    const extentionGeneratedFilePath = path.join(workspacePath, 'extension-data.test.txt');
     await waitForFile(extentionGeneratedFilePath);
     const extensionGeneratedData = readFileSync(extentionGeneratedFilePath, 'utf8')
       .split('\n')
@@ -304,13 +309,19 @@ suite('Extension Test Suite', () => {
     deleteFiles([extentionGeneratedFilePath]);
 
     // run the native repomix CLI on the subdirectory
-    await execPromisify(
-      `npx -y repomix ${targetDirectory} --output ${targetDirectory}native-data.test.txt`,
-      {
-        cwd: workspacePath,
-      }
-    );
-    const testFilePath = join(subDirectoryPath, 'native-data.test.txt');
+    const includeTarget = path.relative(workspacePath, path.join(workspacePath, targetDirectory));
+
+    let cmd = `npx -y repomix ${workspacePath}`;
+    if (command === 'runOnSelectedFiles') {
+      cmd += ` --include ${[includeTarget]}`;
+    }
+    cmd += ` --output ${targetDirectory}native-data.test.txt`;
+
+    await execPromisify(cmd, {
+      cwd: workspacePath,
+    });
+
+    const testFilePath = path.join(subDirectoryPath, 'native-data.test.txt');
     await waitForFile(testFilePath);
     const testData = readFileSync(testFilePath, 'utf8').split('\n').slice(2).join('\n');
     deleteFiles([testFilePath]);

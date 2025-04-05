@@ -107,15 +107,8 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  const runRepomixCommand = vscode.commands.registerCommand(
-    'repomixRunner.run',
-    (uri?: vscode.Uri) => {
-      let targetDir = uri?.fsPath;
-      if (!targetDir) {
-        targetDir = getCwd();
-      }
-      runRepomix(targetDir, tempDirManager.getTempDir());
-    }
+  const runRepomixCommand = vscode.commands.registerCommand('repomixRunner.run', () =>
+    runRepomix()
   );
 
   const runRepomixOnOpenFilesCommand = vscode.commands.registerCommand(
