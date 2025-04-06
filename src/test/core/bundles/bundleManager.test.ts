@@ -4,11 +4,12 @@ import * as sinon from 'sinon';
 import { BundleManager } from '../../../core/bundles/bundleManager';
 import { Bundle } from '../../../core/bundles/types';
 import * as fs from 'fs';
+import path from 'path';
 
 suite('BundleManager', () => {
   let bundleManager: BundleManager;
   let sandbox: sinon.SinonSandbox;
-  const workspaceRoot = '/test-workspace';
+  const workspaceRoot = path.normalize('/test-workspace');
 
   setup(() => {
     sandbox = sinon.createSandbox();
@@ -29,12 +30,12 @@ suite('BundleManager', () => {
     assert.ok(bundleManager, 'BundleManager should be instantiated');
     assert.strictEqual(
       (bundleManager as any).repomixDir,
-      '/test-workspace/.repomix',
+      path.join(workspaceRoot, '.repomix'),
       'repomixDir should be set correctly'
     );
     assert.strictEqual(
       (bundleManager as any).bundlesFile,
-      '/test-workspace/.repomix/bundles.json',
+      path.join(workspaceRoot, '.repomix', 'bundles.json'),
       'bundlesFile should be set correctly'
     );
   });

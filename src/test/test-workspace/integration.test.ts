@@ -1,12 +1,12 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as path from 'node:path';
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { deleteFiles, waitForFile } from '../utilsTest.js';
 import { execPromisify } from '../../shared/execPromisify.js';
 import { TreeNode } from '../../core/bundles/bundleDataProvider.js';
 
-// Définition du type pour les scénarios de test
+// Type definition for test scenarios
 type TestScenario = {
   name: string;
   initialBundle: {
@@ -43,18 +43,25 @@ suite('Extension Test Suite', () => {
   });
 
   setup(async () => {
-    deleteFiles(path.join(workspacePath, '**/*.test*'));
+    // Use normalized pattern for Windows
+    await deleteFiles(path.join(workspacePath, '**', '*.test*'));
   });
 
   teardown(async () => {
-    deleteFiles(path.join(workspacePath, '**/*.test*'));
+    // Use specific patterns for Windows compatibility
+    await deleteFiles([
+      path.join(workspacePath, '**', '*.test*'),
+      path.join(workspacePath, '**', 'native-data.test.txt'),
+      path.join(workspacePath, 'extension-data.test.txt'),
+    ]);
+
     // Clean up any test bundles
     const repomixDir = path.join(workspacePath, '.repomix');
     try {
-      writeFileSync(
-        path.join(repomixDir, 'bundles.json'),
-        JSON.stringify({ bundles: {} }, null, 2)
-      );
+      if (existsSync(repomixDir)) {
+        const bundlesFilePath = path.join(repomixDir, 'bundles.json');
+        writeFileSync(bundlesFilePath, JSON.stringify({ bundles: {} }, null, 2));
+      }
     } catch (error) {
       console.log('Error cleaning up test bundles', error);
     }
@@ -65,9 +72,11 @@ suite('Extension Test Suite', () => {
   });
 
   test('Test Workspace folder should be found', () => {
+    const expectedPath = path.join('src', 'test', 'test-workspace', 'root');
     assert.ok(
-      workspacePath.endsWith('src/test/test-workspace/root'),
-      `Test Workspace path "${workspacePath}" does not end with "src/test/test-workspace/root"`
+      workspacePath.endsWith(expectedPath) ||
+        path.normalize(workspacePath).endsWith(path.normalize(expectedPath)),
+      `Test Workspace path "${workspacePath}" does not end with "${expectedPath}"`
     );
   });
 
@@ -78,13 +87,13 @@ suite('Extension Test Suite', () => {
 
   test('run repomixRunner.runOnSelectedFiles at root/foo/bar/baz and verify file creation for this directory', async function () {
     this.timeout(10000);
-    await compareGeneratedFiles('foo/bar/baz/', 'runOnSelectedFiles');
+    await compareGeneratedFiles(path.normalize('foo/bar/baz'), 'runOnSelectedFiles');
   });
 
   test('removeSelectionFromActiveBundleCommand should remove the selected file or directory from the bundle', async function () {
     this.timeout(10000);
 
-    // Définition des scénarios de test
+    // Define test scenarios
     const testScenarios: TestScenario[] = [
       {
         name: 'Remove a file from a packed directory must eject the directory and remove the concerned file',
@@ -95,18 +104,18 @@ suite('Extension Test Suite', () => {
               created: '2025-03-28T20:53:30.231Z',
               lastUsed: '2025-03-28T20:53:30.231Z',
               tags: [],
-              files: ['foo/bar'],
+              files: [path.normalize('foo/bar')],
             },
           },
         },
-        targetFile: 'foo/bar/baz/foobarbaz.py',
+        targetFile: path.normalize('foo/bar/baz/foobarbaz.py'),
         expectedFiles: [
-          'foo/bar/baz/foobarbaz.go',
-          'foo/bar/baz/foobarbaz.js',
-          'foo/bar/baz/foobarbaz2.go',
-          'foo/bar/foobar.go',
-          'foo/bar/foobar.js',
-          'foo/bar/foobar.py',
+          path.normalize('foo/bar/baz/foobarbaz.go'),
+          path.normalize('foo/bar/baz/foobarbaz.js'),
+          path.normalize('foo/bar/baz/foobarbaz2.go'),
+          path.normalize('foo/bar/foobar.go'),
+          path.normalize('foo/bar/foobar.js'),
+          path.normalize('foo/bar/foobar.py'),
         ],
       },
       {
@@ -118,17 +127,17 @@ suite('Extension Test Suite', () => {
               created: '2025-05-15T14:00:00.000Z',
               lastUsed: '2025-05-15T14:00:00.000Z',
               tags: ['directory'],
-              files: ['foo'],
+              files: [path.normalize('foo')],
             },
           },
         },
-        targetFile: 'foo/bar/baz',
+        targetFile: path.normalize('foo/bar/baz'),
         expectedFiles: [
-          'foo/bar2',
-          'foo/bar/foobar.go',
-          'foo/bar/foobar.js',
-          'foo/bar/foobar.py',
-          'foo/foo.go',
+          path.normalize('foo/bar2'),
+          path.normalize('foo/bar/foobar.go'),
+          path.normalize('foo/bar/foobar.js'),
+          path.normalize('foo/bar/foobar.py'),
+          path.normalize('foo/foo.go'),
         ],
       },
       {
@@ -140,19 +149,19 @@ suite('Extension Test Suite', () => {
               created: '2025-05-20T10:00:00.000Z',
               lastUsed: '2025-05-20T10:00:00.000Z',
               tags: ['mixed'],
-              files: ['foo/bar', 'foo/bar2/foobar2.js'],
+              files: [path.normalize('foo/bar'), path.normalize('foo/bar2/foobar2.js')],
             },
           },
         },
-        targetFile: 'foo/bar/baz/foobarbaz.go',
+        targetFile: path.normalize('foo/bar/baz/foobarbaz.go'),
         expectedFiles: [
-          'foo/bar2/foobar2.js',
-          'foo/bar/baz/foobarbaz.js',
-          'foo/bar/baz/foobarbaz.py',
-          'foo/bar/baz/foobarbaz2.go',
-          'foo/bar/foobar.go',
-          'foo/bar/foobar.js',
-          'foo/bar/foobar.py',
+          path.normalize('foo/bar2/foobar2.js'),
+          path.normalize('foo/bar/baz/foobarbaz.js'),
+          path.normalize('foo/bar/baz/foobarbaz.py'),
+          path.normalize('foo/bar/baz/foobarbaz2.go'),
+          path.normalize('foo/bar/foobar.go'),
+          path.normalize('foo/bar/foobar.js'),
+          path.normalize('foo/bar/foobar.py'),
         ],
       },
       {
@@ -165,23 +174,23 @@ suite('Extension Test Suite', () => {
               lastUsed: '2025-05-25T12:00:00.000Z',
               tags: ['extension'],
               files: [
-                'foo/bar/foobar.go',
-                'foo/bar/foobar.js',
-                'foo/bar/foobar.py',
-                'foo/bar/baz/foobarbaz.go',
-                'foo/bar/baz/foobarbaz.js',
-                'foo/bar/baz/foobarbaz.py',
+                path.normalize('foo/bar/foobar.go'),
+                path.normalize('foo/bar/foobar.js'),
+                path.normalize('foo/bar/foobar.py'),
+                path.normalize('foo/bar/baz/foobarbaz.go'),
+                path.normalize('foo/bar/baz/foobarbaz.js'),
+                path.normalize('foo/bar/baz/foobarbaz.py'),
               ],
             },
           },
         },
-        targetFile: 'foo/bar/baz/foobarbaz.js',
+        targetFile: path.normalize('foo/bar/baz/foobarbaz.js'),
         expectedFiles: [
-          'foo/bar/foobar.go',
-          'foo/bar/foobar.js',
-          'foo/bar/foobar.py',
-          'foo/bar/baz/foobarbaz.go',
-          'foo/bar/baz/foobarbaz.py',
+          path.normalize('foo/bar/foobar.go'),
+          path.normalize('foo/bar/foobar.js'),
+          path.normalize('foo/bar/foobar.py'),
+          path.normalize('foo/bar/baz/foobarbaz.go'),
+          path.normalize('foo/bar/baz/foobarbaz.py'),
         ],
       },
       {
@@ -193,16 +202,25 @@ suite('Extension Test Suite', () => {
               created: '2025-05-25T12:00:00.000Z',
               lastUsed: '2025-05-25T12:00:00.000Z',
               tags: [],
-              files: ['foo/bar/baz', 'foo/bar/foobar.go', 'foo/bar/foobar.js', 'foo/bar/foobar.py'],
+              files: [
+                path.normalize('foo/bar/baz'),
+                path.normalize('foo/bar/foobar.go'),
+                path.normalize('foo/bar/foobar.js'),
+                path.normalize('foo/bar/foobar.py'),
+              ],
             },
           },
         },
-        targetFile: 'foo/bar/foobar.py',
-        expectedFiles: ['foo/bar/baz', 'foo/bar/foobar.go', 'foo/bar/foobar.js'],
+        targetFile: path.normalize('foo/bar/foobar.py'),
+        expectedFiles: [
+          path.normalize('foo/bar/baz'),
+          path.normalize('foo/bar/foobar.go'),
+          path.normalize('foo/bar/foobar.js'),
+        ],
       },
     ];
 
-    // Exécution séquentielle de tous les scénarios de test
+    // Sequential execution of all test scenarios
     for (const scenario of testScenarios) {
       console.log(`\nRunning test scenario: ${scenario.name}`);
       await testRemoveSelectionFromActiveBundle(scenario);
@@ -210,8 +228,8 @@ suite('Extension Test Suite', () => {
   });
 
   /**
-   * Test paramétrable pour removeSelectionFromActiveBundle
-   * @param testScenario Scénario de test contenant les données d'entrée et de sortie attendues
+   * Parameterized test for removeSelectionFromActiveBundle
+   * @param testScenario Test scenario containing input data and expected output
    */
   async function testRemoveSelectionFromActiveBundle(testScenario: TestScenario) {
     console.log(
@@ -237,29 +255,21 @@ suite('Extension Test Suite', () => {
 
     await vscode.commands.executeCommand('repomixRunner.selectActiveBundle', mockTreeNode);
 
-    const targetFile = testScenario.targetFile;
-    const fileUri = vscode.Uri.file(path.join(workspacePath, targetFile));
+    // Build the complete target path
+    const targetPath = path.join(workspacePath, testScenario.targetFile);
 
-    try {
-      await vscode.workspace.fs.stat(fileUri);
-    } catch (e) {}
-
+    // Create a Uri from the target path and use it for the command
+    const targetUri = vscode.Uri.file(targetPath);
     await vscode.commands.executeCommand(
       'repomixRunner.removeSelectedFilesFromActiveBundle',
-      fileUri
+      targetUri
     );
 
-    const updatedBundleRaw = readFileSync(bundlesFilePath, 'utf8');
-    const updatedBundle = JSON.parse(updatedBundleRaw);
+    // Read the bundles.json file after the command to verify changes
+    const updatedBundlesFile = readFileSync(bundlesFilePath, 'utf8');
+    const updatedBundle = JSON.parse(updatedBundlesFile);
 
-    // Vérifier que le bundle existe toujours
-    assert.ok(updatedBundle.bundles[bundleId], 'Bundle should still exist');
-    assert.ok(
-      Array.isArray(updatedBundle.bundles[bundleId].files),
-      'Bundle should have files array'
-    );
-
-    // Trier les tableaux pour une comparaison cohérente (l'ordre n'est pas garanti)
+    // Sort arrays for reliable comparison (order in arrays is not guaranteed)
     const actualFiles = [...updatedBundle.bundles[bundleId].files].sort();
     const expectedFiles = [...testScenario.expectedFiles].sort();
 
@@ -298,33 +308,67 @@ suite('Extension Test Suite', () => {
     const subDirectoryPath = path.join(workspacePath, targetDirectory);
     const uri = vscode.Uri.file(subDirectoryPath);
 
+    // Normalized filenames
+    const extensionOutputFilename = 'extension-data.test.txt';
+    const nativeOutputFilename = 'native-data.test.txt';
+
     // run the extension on the subdirectory
     await vscode.commands.executeCommand(`repomixRunner.${command}`, uri);
-    const extentionGeneratedFilePath = path.join(workspacePath, 'extension-data.test.txt');
+    const extentionGeneratedFilePath = path.join(workspacePath, extensionOutputFilename);
     await waitForFile(extentionGeneratedFilePath);
     const extensionGeneratedData = readFileSync(extentionGeneratedFilePath, 'utf8')
       .split('\n')
       .slice(2)
       .join('\n');
-    deleteFiles([extentionGeneratedFilePath]);
+
+    // Ensure extension file is properly deleted, especially on Windows
+    try {
+      if (existsSync(extentionGeneratedFilePath)) {
+        unlinkSync(extentionGeneratedFilePath);
+      }
+    } catch (err) {
+      console.error(`Error deleting extension output file: ${err}`);
+    }
 
     // run the native repomix CLI on the subdirectory
-    const includeTarget = path.relative(workspacePath, path.join(workspacePath, targetDirectory));
+    // Use path.relative but ensure forward slashes for CLI regardless of platform
+    const includeTarget = path
+      .relative(workspacePath, path.join(workspacePath, targetDirectory))
+      .split(path.sep)
+      .join('/');
 
-    let cmd = `npx -y repomix ${workspacePath}`;
+    // Build output path for native file
+    const nativeOutputPath = path.join(
+      targetDirectory ? targetDirectory : '',
+      nativeOutputFilename
+    );
+
+    // Build command with properly escaped paths for Windows
+    let cmd = `npx -y repomix "${workspacePath}"`;
     if (command === 'runOnSelectedFiles') {
-      cmd += ` --include ${[includeTarget]}`;
+      cmd += ` --include "${includeTarget}"`;
     }
-    cmd += ` --output ${targetDirectory}native-data.test.txt`;
+    cmd += ` --output "${nativeOutputPath}"`;
 
+    // Execute command in workspace directory
     await execPromisify(cmd, {
       cwd: workspacePath,
     });
 
-    const testFilePath = path.join(subDirectoryPath, 'native-data.test.txt');
+    // Complete path to native output file
+    const testFilePath = path.join(workspacePath, nativeOutputPath);
+
     await waitForFile(testFilePath);
     const testData = readFileSync(testFilePath, 'utf8').split('\n').slice(2).join('\n');
-    deleteFiles([testFilePath]);
+
+    // Ensure native file is properly deleted, especially on Windows
+    try {
+      if (existsSync(testFilePath)) {
+        unlinkSync(testFilePath);
+      }
+    } catch (err) {
+      console.error(`Error deleting native output file: ${err}`);
+    }
 
     assert.strictEqual(
       testData,

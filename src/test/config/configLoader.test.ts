@@ -161,16 +161,17 @@ suite('configLoader', () => {
 
     test('Logger should  be called when repomix.config.json does not exist', async () => {
       const loggerSpy = sinon.spy(logger.both, 'debug');
+      const nonExistentPath = path.normalize('/non/existent/path');
 
       try {
-        const config = await readRepomixFileConfig('/non/existent/path');
+        const config = await readRepomixFileConfig(nonExistentPath);
 
         assert.strictEqual(config, undefined);
 
         sinon.assert.calledOnce(loggerSpy);
         sinon.assert.calledWith(
           loggerSpy,
-          "Can't access config file at /non/existent/path/repomix.config.json"
+          `Can't access config file at ${path.join(nonExistentPath, 'repomix.config.json')}`
         );
       } finally {
         loggerSpy.restore();
@@ -338,7 +339,9 @@ suite('configLoader', () => {
       const merged = await mergeConfigs(testCwd, fileConfig, vscodeConfig, {
         include: ['foo/bar'],
       });
-      assert.ok(path.relative(testCwd, merged.output.filePath) === 'foo/bar/custom.txt');
+      assert.ok(
+        path.relative(testCwd, merged.output.filePath) === path.normalize('foo/bar/custom.txt')
+      );
     });
 
     test('should not set output path relative to the target directory if config.runner.useTargetAsOutput is false', async () => {
@@ -359,7 +362,7 @@ suite('configLoader', () => {
           filePath: 'custom.txt',
         },
       };
-      testCwd = '/test/cwd';
+      testCwd = path.normalize('/test/cwd');
       const merged = await mergeConfigs(testCwd, fileConfig, vscodeConfig, null);
       assert.ok(path.relative(testCwd, merged.output.filePath) === 'custom.txt');
     });

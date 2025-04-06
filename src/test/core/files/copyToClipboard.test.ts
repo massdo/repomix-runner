@@ -4,6 +4,7 @@ import * as assert from 'assert';
 import * as os from 'os';
 import { copyToClipboard } from '../../../core/files/copyToClipboard.js';
 import { tempDirManager } from '../../../core/files/tempDirManager.js';
+import * as path from 'path';
 
 type TestCase = {
   os: 'darwin' | 'win32' | 'linux';
@@ -31,15 +32,19 @@ suite('copyToClipboard', () => {
   const testCases: TestCase[] = [
     {
       os: 'darwin',
-      expectedCommand: `osascript -e 'tell application "Finder" to set the clipboard to (POSIX file "/path/to/tmp/output.txt")'`,
+      expectedCommand: `osascript -e 'tell application "Finder" to set the clipboard to (POSIX file "${path.normalize(
+        '/path/to/tmp/output.txt'
+      )}")'`,
     },
     {
       os: 'win32',
-      expectedCommand: `clip < "/path/to/tmp/output.txt"`,
+      expectedCommand: `clip < "${path.normalize('/path/to/tmp/output.txt')}"`,
     },
     {
       os: 'linux',
-      expectedCommand: `echo "file:///path/to/tmp/output.txt" | xclip -selection clipboard -t text/uri-list`,
+      expectedCommand: `echo "file://${path.normalize(
+        '/path/to/tmp/output.txt'
+      )}" | xclip -selection clipboard -t text/uri-list`,
     },
   ];
 
@@ -63,8 +68,8 @@ suite('copyToClipboard', () => {
      * - VS Code's showErrorMessage might behave differently per OS
      */
     test(`should show error message if copy file fails on ${osType}`, async () => {
-      const outputFileAbs = '/path/to/output.txt';
-      const tmpFilePath = '/path/to/tmp/output.txt';
+      const outputFileAbs = path.normalize('/path/to/output.txt');
+      const tmpFilePath = path.normalize('/path/to/tmp/output.txt');
 
       const copyError = new Error('Copy failed');
       copyFileStub.rejects(copyError);
@@ -106,8 +111,8 @@ suite('copyToClipboard', () => {
      * - Path escaping might fail on certain OS configurations
      */
     test(`should execute correct clipboard command for ${osType}`, async () => {
-      const outputFileAbs = '/path/to/output.txt';
-      const tmpFilePath = '/path/to/tmp/output.txt';
+      const outputFileAbs = path.normalize('/path/to/output.txt');
+      const tmpFilePath = path.normalize('/path/to/tmp/output.txt');
 
       copyFileStub.resolves();
       execPromisifyStub.resolves({ stdout: '', stderr: '' });
@@ -139,8 +144,8 @@ suite('copyToClipboard', () => {
    * - The path to the temp directory might be incorrect.
    */
   test('should recreate temp dir if it is deleted during session', async () => {
-    const outputFileAbs = '/path/to/output.txt';
-    const tmpFilePath = '/path/to/tmp/output.txt';
+    const outputFileAbs = path.normalize('/path/to/output.txt');
+    const tmpFilePath = path.normalize('/path/to/tmp/output.txt');
 
     const osTempDir = os.tmpdir();
 
@@ -155,7 +160,7 @@ suite('copyToClipboard', () => {
 
     const testdir = tempDirManager.getTempDir();
 
-    assert.strictEqual(testdir, osTempDir + '/test');
+    assert.strictEqual(testdir, path.join(osTempDir, 'test'));
   });
   // TODO check the copypaste -> integration test ?
   // });
