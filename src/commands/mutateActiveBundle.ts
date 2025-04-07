@@ -5,6 +5,7 @@ import { BundleManager } from '../core/bundles/bundleManager';
 import path from 'path';
 import { Bundle } from '../core/bundles/types';
 import fs from 'fs';
+import { normalizePathForStorage, convertToOSPath } from '../shared/files';
 
 /**
  * Adds files to the active bundle.
@@ -40,7 +41,12 @@ export async function addFilesToActiveBundle(
     return;
   }
 
-  const selectedFiles = uris.map(uri => path.relative(options.cwd, uri.fsPath));
+  // Get relative paths and convert backslashes to forward slashes for storage
+  const selectedFiles = uris.map(uri => {
+    const relativePath = path.relative(options.cwd, uri.fsPath);
+    // Always store paths with forward slashes in the bundle for cross-platform compatibility
+    return normalizePathForStorage(relativePath);
+  });
 
   const combinedFiles = [...bundle.files, ...selectedFiles];
 
@@ -88,7 +94,12 @@ export async function removeFilesFromActiveBundle(
     return;
   }
 
-  const selectedFiles = uris.map(uri => path.relative(options.cwd, uri.fsPath));
+  // Get relative paths and convert backslashes to forward slashes for storage
+  const selectedFiles = uris.map(uri => {
+    const relativePath = path.relative(options.cwd, uri.fsPath);
+    // Always store paths with forward slashes in the bundle for cross-platform compatibility
+    return normalizePathForStorage(relativePath);
+  });
 
   const updatedFiles = removeFilesFromBundle(bundle.files, selectedFiles, options.cwd);
 
@@ -105,10 +116,19 @@ function normalizeFiles(files: string[], cwd: string): string[] {
   const allFiles = [...new Set(files)];
 
   // Identify directories in the list
-  const directories = allFiles.filter(file => isDirectory(path.join(cwd, file)));
+  const directories = allFiles.filter(file => {
+    // Convert to OS path for directory check, then back to forward slashes for storage
+    const osPath = convertToOSPath(file);
+    return isDirectory(path.join(cwd, osPath));
+  });
 
   // Filter to exclude subpaths of directories already present
-  return allFiles.filter(file => !directories.some(dir => isSubPath(file, dir)));
+  // Always ensure paths use forward slashes for cross-platform compatibility
+  return allFiles
+    .filter(
+      file => !directories.some(dir => isSubPath(convertToOSPath(file), convertToOSPath(dir)))
+    )
+    .map(normalizePathForStorage);
 }
 
 function removeFilesFromBundle(
@@ -117,14 +137,23 @@ function removeFilesFromBundle(
   cwd: string
 ): string[] {
   let resultFiles: string[] = [];
-  const directoriesToRemove = filesToRemove.filter(file => isDirectory(path.join(cwd, file)));
+
+  // Prepare directory paths using OS-specific separator for file system operations
+  const directoriesToRemove = filesToRemove.filter(file => {
+    const osPath = convertToOSPath(file);
+    return isDirectory(path.join(cwd, osPath));
+  });
+
   const bundleDirectoriesToExpand = new Set<string>();
-  const bundleDirectories = bundleFiles.filter(file => isDirectory(path.join(cwd, file)));
+  const bundleDirectories = bundleFiles.filter(file => {
+    const osPath = convertToOSPath(file);
+    return isDirectory(path.join(cwd, osPath));
+  });
 
   // Identify bundle directories that contain files to remove
   for (const dir of bundleDirectories) {
     for (const fileToRemove of filesToRemove) {
-      if (isSubPath(fileToRemove, dir)) {
+      if (isSubPath(convertToOSPath(fileToRemove), convertToOSPath(dir))) {
         bundleDirectoriesToExpand.add(dir);
         break;
       }
@@ -133,27 +162,44 @@ function removeFilesFromBundle(
 
   // Keep files that are neither removed nor in directories to remove
   for (const bundleFile of bundleFiles) {
-    if (filesToRemove.includes(bundleFile)) {
+    // Normalize both paths for comparison
+    const normalizedBundleFile = bundleFile.normalize ? bundleFile.normalize() : bundleFile;
+
+    // Check if file is in the remove list
+    if (
+      filesToRemove.some(file => {
+        const normalizedFile = file.normalize ? file.normalize() : file;
+        return normalizedBundleFile === normalizedFile;
+      })
+    ) {
       continue;
     }
-    if (directoriesToRemove.some(dir => isSubPath(bundleFile, dir))) {
+
+    // Check if file is in directories to remove
+    if (
+      directoriesToRemove.some(dir => isSubPath(convertToOSPath(bundleFile), convertToOSPath(dir)))
+    ) {
       continue;
     }
+
     if (bundleDirectoriesToExpand.has(bundleFile)) {
       continue;
     }
+
     resultFiles.push(bundleFile);
   }
 
   // Process bundle directories containing files to remove
   for (const dir of bundleDirectoriesToExpand) {
-    const expandedEntries = expandDirectoryWithSubdirs(path.join(cwd, dir), dir, cwd);
+    const osDirPath = convertToOSPath(dir);
+    const expandedEntries = expandDirectoryWithSubdirs(path.join(cwd, osDirPath), osDirPath, cwd);
     const allFiles = new Set<string>();
     const allDirs = new Set<string>();
 
     // Separate files and directories
     for (const entry of expandedEntries) {
-      if (isDirectory(path.join(cwd, entry))) {
+      const osEntryPath = convertToOSPath(entry);
+      if (isDirectory(path.join(cwd, osEntryPath))) {
         allDirs.add(entry);
       } else {
         allFiles.add(entry);
@@ -164,7 +210,7 @@ function removeFilesFromBundle(
     for (const dirToRemove of directoriesToRemove) {
       allDirs.delete(dirToRemove);
       for (const dir of [...allDirs]) {
-        if (isSubPath(dir, dirToRemove)) {
+        if (isSubPath(convertToOSPath(dir), convertToOSPath(dirToRemove))) {
           allDirs.delete(dir);
         }
       }
@@ -174,8 +220,9 @@ function removeFilesFromBundle(
     for (const fileToRemove of filesToRemove) {
       allFiles.delete(fileToRemove);
     }
+
     for (const file of [...allFiles]) {
-      if (directoriesToRemove.some(dir => isSubPath(file, dir))) {
+      if (directoriesToRemove.some(dir => isSubPath(convertToOSPath(file), convertToOSPath(dir)))) {
         allFiles.delete(file);
       }
     }
@@ -184,16 +231,25 @@ function removeFilesFromBundle(
     const compressibleDirs = new Set<string>();
     for (const directory of allDirs) {
       if (
-        filesToRemove.includes(directory) ||
-        directoriesToRemove.some(dir => isSubPath(directory, dir))
+        filesToRemove.some(file => file === directory) ||
+        directoriesToRemove.some(dir => isSubPath(convertToOSPath(directory), convertToOSPath(dir)))
       ) {
         continue;
       }
-      const containsFileToRemove = filesToRemove.some(file => isSubPath(file, directory));
+
+      const containsFileToRemove = filesToRemove.some(file =>
+        isSubPath(convertToOSPath(file), convertToOSPath(directory))
+      );
+
       if (!containsFileToRemove) {
-        const dirFiles = Array.from(allFiles).filter(file => isSubPath(file, directory));
+        const dirOsPath = convertToOSPath(directory);
+        const dirFiles = Array.from(allFiles).filter(file =>
+          isSubPath(convertToOSPath(file), convertToOSPath(directory))
+        );
+
         const allDirFilesPresent =
-          dirFiles.length === getAllFilesInDir(path.join(cwd, directory)).length;
+          dirFiles.length === getAllFilesInDir(path.join(cwd, dirOsPath)).length;
+
         if (allDirFilesPresent) {
           compressibleDirs.add(directory);
         }
@@ -204,7 +260,7 @@ function removeFilesFromBundle(
     for (const compressibleDir of compressibleDirs) {
       resultFiles.push(compressibleDir);
       for (const file of allFiles) {
-        if (isSubPath(file, compressibleDir)) {
+        if (isSubPath(convertToOSPath(file), convertToOSPath(compressibleDir))) {
           allFiles.delete(file);
         }
       }
@@ -225,13 +281,17 @@ function expandDirectoryWithSubdirs(fullPath: string, relativePath: string, cwd:
     const entries = fs.readdirSync(fullPath);
     for (const entry of entries) {
       const entryFullPath = path.join(fullPath, entry);
+      // Join with OS-specific separator for filesystem operations
       const entryRelativePath = path.join(relativePath, entry);
+      // Convert to forward slashes for storage
+      const storagePath = normalizePathForStorage(entryRelativePath);
+
       if (isDirectory(entryFullPath)) {
-        results.push(entryRelativePath);
+        results.push(storagePath);
         const subEntries = expandDirectoryWithSubdirs(entryFullPath, entryRelativePath, cwd);
         results.push(...subEntries);
       } else {
-        results.push(entryRelativePath);
+        results.push(storagePath);
       }
     }
   } catch (error) {
@@ -243,6 +303,8 @@ function expandDirectoryWithSubdirs(fullPath: string, relativePath: string, cwd:
 // Get all files (not directories) in a directory
 function getAllFilesInDir(fullPath: string): string[] {
   const files: string[] = [];
+  const normalizedFullPath = path.normalize(fullPath);
+
   try {
     const walk = (dir: string) => {
       const entries = fs.readdirSync(dir);
@@ -251,19 +313,26 @@ function getAllFilesInDir(fullPath: string): string[] {
         if (isDirectory(entryPath)) {
           walk(entryPath);
         } else {
-          files.push(entryPath);
+          // Convertir le chemin absolu en chemin relatif avec des séparateurs de chemin "/"
+          const relativePath = path.relative(normalizedFullPath, entryPath);
+          files.push(normalizePathForStorage(relativePath));
         }
       }
     };
-    walk(fullPath);
+    walk(normalizedFullPath);
   } catch (error) {
     console.error(`Error while exploring directory: ${fullPath}`, error);
   }
+
   return files;
 }
 
 function isSubPath(child: string, parent: string): boolean {
-  const relative = path.relative(parent, child);
+  // Normalize paths to use OS-specific separators for path operations
+  const normalizedChild = path.normalize(child);
+  const normalizedParent = path.normalize(parent);
+
+  const relative = path.relative(normalizedParent, normalizedChild);
   return relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
 }
 

@@ -1,6 +1,7 @@
 import { accessSync } from 'fs';
 import * as vscode from 'vscode';
 import { getCwd } from '../config/getCwd';
+import path from 'path';
 
 /**
  * Checks if a file exists and is accessible.
@@ -45,4 +46,24 @@ export async function isDirectory(relativePath: string): Promise<boolean> {
     console.error(`Erreur lors de la vérification du chemin ${relativePath}:`, error);
     throw error;
   }
+}
+
+/**
+ * Converts a file path to use forward slashes for storage in bundles.
+ * This ensures cross-platform compatibility regardless of the operating system.
+ * @param filePath The path to normalize
+ * @returns The normalized path with forward slashes
+ */
+export function normalizePathForStorage(filePath: string): string {
+  return filePath.split(path.sep).join('/');
+}
+
+/**
+ * Converts a storage path with forward slashes to use OS-specific separators.
+ * This is useful when interacting with the file system.
+ * @param storagePath The path with forward slashes
+ * @returns The path with OS-specific separators
+ */
+export function convertToOSPath(storagePath: string): string {
+  return storagePath.split('/').join(path.sep);
 }

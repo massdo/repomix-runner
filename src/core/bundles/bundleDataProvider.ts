@@ -97,7 +97,8 @@ export class BundleDataProvider implements vscode.TreeDataProvider<TreeNode> {
   }
 
   private async _addPathToTree(root: TreeNode, filePath: string, workspaceUri: vscode.Uri) {
-    const parts = filePath.split('/');
+    const normalizedPath = path.normalize(filePath);
+    const parts = normalizedPath.split(path.sep);
     let current = root;
     let currentPath = '';
     for (let i = 0; i < parts.length; i++) {
@@ -170,9 +171,10 @@ export class BundleDataProvider implements vscode.TreeDataProvider<TreeNode> {
 
   private _handleFileDeletion(uri: vscode.Uri) {
     const relativePath = vscode.workspace.asRelativePath(uri);
+    const normalizedRelativePath = path.normalize(relativePath);
     let shouldRefresh = false;
     for (const bundle of Object.values(this.bundles)) {
-      if (bundle.files.some(file => file.startsWith(relativePath))) {
+      if (bundle.files.some(file => path.normalize(file).startsWith(normalizedRelativePath))) {
         shouldRefresh = true;
         break;
       }
