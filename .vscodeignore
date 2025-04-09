@@ -1,7 +1,8 @@
 .vscode/**
 .vscode-test/**
 node_modules/
-assets/repomix-demo.mp4
+assets/create-bundle.mp4
+assets/run-on-selection.mp4
 src/
 out/
 .repomix
