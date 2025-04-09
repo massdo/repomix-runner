@@ -26,25 +26,36 @@ With the **_REPOMIX_** custom view, all is in one place 🎉 :
 
 (keep in mind the output-file is also in your clipboard).
 
-https://github.com/user-attachments/assets/d092ca93-c2c4-4475-a622-6359a49506b1
+### ⬇️ - Run Repomix on selection
+
+https://github.com/user-attachments/assets/21272ff9-0bf1-48dc-a583-34355bb35ced
 
 <div align="center">
-  <video src="https://massdo.github.io/repomix-runner/assets/repomix-demo.mp4" type="video/mp4" controls controlsList="nodownload" allowfullscreen>
+  <video src="https://massdo.github.io/repomix-runner/assets/run-on-selection.mp4" type="video/mp4" controls controlsList="nodownload" allowfullscreen>
     Your browser does not support the video tag.
   </video>
 </div>
 
-Or you can use the commands ⬇️
+### ⬇️ - Create a bundle with custom config
+
+https://github.com/user-attachments/assets/134e7fdf-1e98-429f-b16c-a76e99dc761f
+
+<div align="center">
+  <video src="https://massdo.github.io/repomix-runner/assets/create-bundle.mp4" type="video/mp4" controls controlsList="nodownload" allowfullscreen>
+    Your browser does not support the video tag.
+  </video>
+</div>
 
 ## ⚙️ Commands
 
 Open the palette with `Cmd+Shift+P` or `Ctrl+Shift+P` then:
 
 - `Repomix Run` to run repomix on the root folder of your project
-- `Repomix Run On Open Files` to run repomix on the open files
-- `Repomix Run On Selection` to run repomix on the selected files or directories
+- `Repomix Run On Open Files` to run repomix on the open files in the workspace
+- `Repomix Create New Bundle` to create a new bundle
 - `Repomix Run Bundle` to select a bundle to run
-- `Repomix Manage Bundles` to edit or delete your bundles
+- `Repomix Edit Bundle` to edit bundle name, config file, description and tags
+- `Repomix Refresh Bundles` to refresh the bundles list if you mannually change the .repomix/bundles.json file
 - `Repomix Settings` for a quick access to the settings
 - `Repomix Output` to open the repomix output channel
 
