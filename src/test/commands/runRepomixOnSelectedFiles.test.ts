@@ -46,7 +46,7 @@ suite('runRepomixOnSelectedFiles', () => {
     assert.strictEqual(getCwdStub.calledOnce, true);
     assert.strictEqual(runRepomixStub.calledOnce, true);
 
-    sinon.assert.calledWith(runRepomixStub, mockCwd, mockTempDir, {
+    sinon.assert.calledWith(runRepomixStub, {
       ...defaultRunRepomixDeps,
       mergeConfigOverride: { include: ['file1.ts', 'file2.ts'] },
     });

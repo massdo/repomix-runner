@@ -8,9 +8,7 @@ suite('CliFlagsBuilder', () => {
   setup(() => {
     baseConfig = {
       ...defaultConfig,
-      targetDirBasename: 'test-dir',
-      targetDir: '/path/to/test-dir',
-      targetPathRelative: 'relative/path/to/test-dir',
+      cwd: '/path/to/test-dir',
     };
   });
 

@@ -53,8 +53,8 @@ suite('runRepomixOnOpenFiles', () => {
     assert.strictEqual(getOpenFilesStub.calledOnce, true, 'getOpenFiles should be called once');
     assert.strictEqual(runRepomixStub.calledOnce, true, 'runRepomix should be called once');
 
-    // Verify runRepomix was called with correct arguments
-    sinon.assert.calledWith(runRepomixStub, mockCwd, mockTempDir, {
+    // Verify runRepomix was called with correct files in include config
+    sinon.assert.calledWith(runRepomixStub, {
       ...defaultRunRepomixDeps,
       mergeConfigOverride: { include: mockOpenFiles },
     });

@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 export interface Bundle {
   name: string;
   description?: string;
+  configPath?: string;
   created: string;
   lastUsed: string;
   tags: string[];

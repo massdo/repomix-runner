@@ -1,11 +1,12 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as sinon from 'sinon';
+import * as path from 'path';
 import { getOpenFiles } from '../../config/getOpenFiles.js';
 
 suite('getOpenFiles', () => {
   let sandbox: sinon.SinonSandbox;
-  const mockCwd = '/test/path';
+  const mockCwd = path.normalize('/test/path');
 
   setup(() => {
     sandbox = sinon.createSandbox();
@@ -19,10 +20,12 @@ suite('getOpenFiles', () => {
     // Mock tab groups and tabs
     const mockTabs = [
       {
-        input: new vscode.TabInputText(vscode.Uri.file('/test/path/file1.ts')),
+        input: new vscode.TabInputText(vscode.Uri.file(path.join(mockCwd, 'file1.ts'))),
       },
       {
-        input: new vscode.TabInputText(vscode.Uri.file('/test/path/subfolder/file2.ts')),
+        input: new vscode.TabInputText(
+          vscode.Uri.file(path.join(mockCwd, 'subfolder', 'file2.ts'))
+        ),
       },
     ];
 
@@ -38,13 +41,13 @@ suite('getOpenFiles', () => {
 
     const result = getOpenFiles(mockCwd);
 
-    assert.deepStrictEqual(result, ['file1.ts', 'subfolder/file2.ts']);
+    assert.deepStrictEqual(result, ['file1.ts', path.normalize('subfolder/file2.ts')]);
   });
 
   test('should filter out non-text files', () => {
     const mockTabs = [
       {
-        input: new vscode.TabInputText(vscode.Uri.file('/test/path/file1.ts')),
+        input: new vscode.TabInputText(vscode.Uri.file(path.join(mockCwd, 'file1.ts'))),
       },
       {
         input: {}, // Non-text tab input
@@ -72,17 +75,17 @@ suite('getOpenFiles', () => {
         {
           tabs: [
             {
-              input: new vscode.TabInputText(vscode.Uri.file('/test/path/file1.ts')),
+              input: new vscode.TabInputText(vscode.Uri.file(path.join(mockCwd, 'file1.ts'))),
             },
           ],
         },
         {
           tabs: [
             {
-              input: new vscode.TabInputText(vscode.Uri.file('/test/path/file2.ts')),
+              input: new vscode.TabInputText(vscode.Uri.file(path.join(mockCwd, 'file2.ts'))),
             },
             {
-              input: new vscode.TabInputText(vscode.Uri.file('/test/path/file22.ts')),
+              input: new vscode.TabInputText(vscode.Uri.file(path.join(mockCwd, 'file22.ts'))),
             },
           ],
         },

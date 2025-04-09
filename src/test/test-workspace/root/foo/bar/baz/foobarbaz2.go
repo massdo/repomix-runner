@@ -1,1 +1,7 @@
-console.log("foobarbaz2");
+package main
+
+import "fmt"
+
+func main() {
+    fmt.Println("foobarbaz2")
+}

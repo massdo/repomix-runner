@@ -37,7 +37,7 @@ export class TempDirManager {
   public cleanup() {
     if (this.tempDir && fs.existsSync(this.tempDir)) {
       fs.rmSync(this.tempDir, { recursive: true });
-      logger.output.debug(`Cleaned up temp directory: ${this.tempDir}`); // BUG logger not working
+      logger.output.debug(`Cleaned up temp directory: ${this.tempDir}`);
     }
   }
 
@@ -45,7 +45,6 @@ export class TempDirManager {
     // TODO integration test
     try {
       await setTimeout(delay);
-      // Check if file exists before trying to delete
       try {
         await access(tmpFilePath);
         await unlink(tmpFilePath);
@@ -53,7 +52,6 @@ export class TempDirManager {
         if (error.code !== 'ENOENT') {
           throw error;
         }
-        // File doesn't exist, nothing to do
       }
     } catch (error) {
       logger.output.error(`Failed to delete temp file ${tmpFilePath}:`, error);

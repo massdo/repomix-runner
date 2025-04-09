@@ -3,25 +3,40 @@ import { getCwd } from '../config/getCwd.js';
 import { runRepomixOnSelectedFiles } from './runRepomixOnSelectedFiles.js';
 import { logger } from '../shared/logger.js';
 import { showTempNotification } from '../shared/showTempNotification.js';
-import { Bundle } from '../core/bundles/types.js';
-import { BundleManager } from '../core/bundles/bundleManager.js';
 import { readRepomixRunnerVscodeConfig } from '../config/configLoader.js';
 import { RepomixConfigFile } from '../config/configSchema.js';
+import { BundleManager } from '../core/bundles/bundleManager.js';
+import { readRepomixFileConfig } from '../config/configLoader.js';
 
-export async function runBundle(bundle: Bundle) {
+export async function runBundle(bundleManager: BundleManager, bundleId: string) {
   const cwd = getCwd();
-  const bundleManager = new BundleManager(cwd);
+  const bundle = await bundleManager.getBundle(bundleId);
   const config = readRepomixRunnerVscodeConfig();
-  const overrideConfig: RepomixConfigFile = {};
+  let overrideConfig: RepomixConfigFile = {};
+
+  // If a custom bundle config file is provided, use it
+  if (bundle.configPath) {
+    const bundleConfig = await readRepomixFileConfig(cwd, bundle.configPath);
+
+    if (!bundleConfig) {
+      return;
+    }
+
+    overrideConfig = bundleConfig;
+  }
 
   if (config.runner.useBundleNameAsOutputName) {
-    overrideConfig.output = {
-      filePath: bundle.name,
-    };
+    // TODO revoir
+    if (overrideConfig.output?.filePath) {
+      overrideConfig.output.filePath = overrideConfig.output?.filePath + bundle.name;
+    }
   }
 
   try {
     // Convert file paths to URIs
+    if (!bundle.files) {
+      return;
+    }
     const uris = bundle.files.map(filePath =>
       vscode.Uri.file(vscode.Uri.joinPath(vscode.Uri.file(cwd), filePath).fsPath)
     );
@@ -65,7 +80,7 @@ export async function runBundle(bundle: Bundle) {
       lastUsed: new Date().toISOString(),
     };
 
-    await bundleManager.saveBundle(updatedBundle);
+    await bundleManager.saveBundle(bundleId, updatedBundle);
   } catch (error) {
     logger.both.error('Failed to run bundle:', error);
     vscode.window.showErrorMessage(`Failed to run bundle: ${error}`);

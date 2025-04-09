@@ -106,6 +106,7 @@ export const defaultRunnerCopyMode: Record<RunnerCopyMode, string> = {
 export const repomixRunnerConfigBaseSchema = z
   .object({
     runner: z.object({
+      verbose: z.boolean(),
       keepOutputFile: z.boolean(),
       copyMode: runnerCopyModeSchema,
       useTargetAsOutput: z.boolean(),
@@ -117,6 +118,7 @@ export const repomixRunnerConfigBaseSchema = z
 export const repomixRunnerConfigDefaultSchema = z
   .object({
     runner: z.object({
+      verbose: z.boolean().default(false),
       keepOutputFile: z.boolean().default(true),
       copyMode: runnerCopyModeSchema.default('file'),
       useTargetAsOutput: z.boolean().default(true),
@@ -128,9 +130,7 @@ export const repomixRunnerConfigDefaultSchema = z
 // Merged config schema
 export const mergedConfigSchema = repomixRunnerConfigDefaultSchema.and(
   z.object({
-    targetDirBasename: z.string(),
-    targetDir: z.string(),
-    targetPathRelative: z.string(),
+    cwd: z.string(),
   })
 );
 

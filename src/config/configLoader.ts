@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { readFile } from 'fs/promises';
+import { access, readFile } from 'fs/promises';
 import {
   type RepomixConfigFile,
   type MergedConfig,
@@ -11,6 +11,7 @@ import {
   mergedConfigSchema,
 } from './configSchema.js';
 import { logger } from '../shared/logger.js';
+import { isDirectory } from '../shared/files.js';
 
 function stripJsonComments(json: string): string {
   // Remove multi-line comments but preserve line breaks
@@ -43,13 +44,19 @@ export function readRepomixRunnerVscodeConfig(): RepomixRunnerConfigDefault {
   return validatedConfig;
 }
 
-export async function readRepomixFileConfig(cwd: string): Promise<RepomixConfigFile | void> {
-  const configPath = path.join(cwd, 'repomix.config.json'); // TODO support --config flag
+export async function readRepomixFileConfig(
+  cwd: string,
+  customConfigPathRelative?: string
+): Promise<RepomixConfigFile | void> {
+  const configPath = path.join(cwd, customConfigPathRelative || 'repomix.config.json'); // TODO support --config flag
 
   try {
-    await readFile(configPath, { encoding: 'utf8' });
+    await access(configPath);
   } catch (error) {
-    logger.both.debug('repomix.config.json file does not exist');
+    if (customConfigPathRelative) {
+      vscode.window.showErrorMessage(`Can't access config file at ${configPath}`);
+    }
+    logger.both.debug(`Can't access config file at ${configPath}`);
     return;
   }
 
@@ -64,20 +71,37 @@ export async function readRepomixFileConfig(cwd: string): Promise<RepomixConfigF
   }
 }
 
-export function mergeConfigs(
+export async function mergeConfigs(
   cwd: string,
   configFromRepomixFile: RepomixConfigFile | void,
   configFromRepomixRunnerVscode: RepomixRunnerConfigDefault,
-  targetDir: string,
   overrideConfig: RepomixConfigFile | null = null
-): MergedConfig {
+): Promise<MergedConfig> {
   const baseConfig: RepomixRunnerConfigDefault = defaultConfig;
+
+  const include =
+    overrideConfig?.include ||
+    configFromRepomixFile?.include ||
+    configFromRepomixRunnerVscode.include ||
+    baseConfig.include;
 
   let outputFilePath =
     overrideConfig?.output?.filePath ||
     configFromRepomixFile?.output?.filePath ||
     configFromRepomixRunnerVscode.output.filePath ||
     baseConfig.output.filePath;
+
+  // If usetargetasoutput option is true and include is a directory, then use the directory as output
+  if (
+    configFromRepomixRunnerVscode.runner.useTargetAsOutput &&
+    !overrideConfig?.output?.filePath &&
+    include.length === 1 &&
+    !include[0].includes('*') &&
+    (await isDirectory(include[0]))
+  ) {
+    const targetDir = path.resolve(cwd, include[0]);
+    outputFilePath = path.resolve(targetDir, outputFilePath);
+  }
 
   const outputStyle =
     overrideConfig?.output?.style ||
@@ -88,9 +112,7 @@ export function mergeConfigs(
   outputFilePath = addFileExtension(outputFilePath, outputStyle);
 
   const mergedConfig = {
-    targetDirBasename: path.relative(cwd, targetDir) || path.basename(cwd),
-    targetDir,
-    targetPathRelative: path.relative(cwd, path.resolve(targetDir, outputFilePath)),
+    cwd,
     runner: {
       ...baseConfig.runner,
       ...configFromRepomixRunnerVscode.runner,
@@ -100,16 +122,9 @@ export function mergeConfigs(
       ...configFromRepomixRunnerVscode.output,
       ...configFromRepomixFile?.output,
       ...overrideConfig?.output,
-      filePath: configFromRepomixRunnerVscode.runner.useTargetAsOutput
-        ? path.resolve(targetDir, outputFilePath)
-        : path.resolve(cwd, outputFilePath),
+      filePath: path.resolve(cwd, outputFilePath),
     },
-    include:
-      // MEMO on cumule  dans repomix -> issue ?
-      overrideConfig?.include ||
-      configFromRepomixFile?.include ||
-      configFromRepomixRunnerVscode.include ||
-      baseConfig.include,
+    include: include,
     ignore: {
       ...baseConfig.ignore,
       ...configFromRepomixRunnerVscode.ignore,
