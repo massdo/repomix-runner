@@ -2,7 +2,9 @@ import * as vscode from 'vscode';
 import { BundleManager } from '../core/bundles/bundleManager';
 import { fileAccess } from '../shared/files';
 import { showTempNotification } from '../shared/showTempNotification';
-import { repomixConfigDefaultSchema } from '../config/configSchema';
+import { mergeConfigs } from '../config/configLoader';
+import { readRepomixFileConfig } from '../config/configLoader';
+import { readRepomixRunnerVscodeConfig } from '../config/configLoader';
 
 export async function goToConfigFile(
   bundleId: string,
@@ -82,8 +84,14 @@ async function createConfigFile(cwd: string, bundleName: string): Promise<string
   const configFileName = `${bundleName}-repomix.config.json`;
   const configFilePath = vscode.Uri.joinPath(configDir, configFileName);
 
-  const defaultConfig = repomixConfigDefaultSchema.parse({});
-  const initialConfigContent = JSON.stringify(defaultConfig, null, 2);
+  const vscodeConfig = readRepomixRunnerVscodeConfig();
+  const configFile = await readRepomixFileConfig(cwd);
+
+  const globalConfig = await mergeConfigs(cwd, configFile, vscodeConfig);
+
+  const { runner, ...bundleConfig } = globalConfig;
+
+  const initialConfigContent = JSON.stringify(bundleConfig, null, 2);
 
   try {
     await vscode.workspace.fs.writeFile(configFilePath, Buffer.from(initialConfigContent, 'utf8'));

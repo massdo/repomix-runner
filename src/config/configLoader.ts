@@ -71,6 +71,19 @@ export async function readRepomixFileConfig(
   }
 }
 
+/**
+ * Merges configurations from different sources with the following priority order (highest to lowest):
+ * 1. overrideConfig (passed directly to the function)
+ * 2. configFromRepomixFile (from repomix.config.json)
+ * 3. configFromRepomixRunnerVscode (from VS Code settings)
+ * 4. baseConfig (default configuration)
+ *
+ * @param cwd Current working directory
+ * @param configFromRepomixFile Configuration from repomix.config.json file
+ * @param configFromRepomixRunnerVscode Configuration from VS Code settings
+ * @param overrideConfig Optional configuration to override all other sources
+ * @returns Merged configuration following the priority order
+ */
 export async function mergeConfigs(
   cwd: string,
   configFromRepomixFile: RepomixConfigFile | void,
