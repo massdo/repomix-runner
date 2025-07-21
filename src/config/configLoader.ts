@@ -13,7 +13,7 @@ import {
 import { logger } from '../shared/logger.js';
 import { isDirectory } from '../shared/files.js';
 
-function stripJsonComments(json: string): string {
+export function stripJsonComments(json: string): string {
   if (typeof json !== 'string') {
     throw new TypeError('Expected argument to be a string');
   }
