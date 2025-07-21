@@ -14,13 +14,83 @@ import { logger } from '../shared/logger.js';
 import { isDirectory } from '../shared/files.js';
 
 function stripJsonComments(json: string): string {
-  // Remove multi-line comments but preserve line breaks
-  json = json.replace(/\/\*[\s\S]*?\*\//g, match => match.replace(/[^\r\n]/g, ' '));
+  if (typeof json !== 'string') {
+    throw new TypeError('Expected argument to be a string');
+  }
+  const out: string[] = [];
+  let i = 0,
+    inStr = false,
+    inCom = false,
+    comType: 'single' | 'multi' | null = null,
+    sliceStart = 0;
 
-  // Remove single-line comments but preserve line breaks
-  json = json.replace(/\/\/[^\n\r]*/g, match => match.replace(/[^\r\n]/g, ' '));
+  const push = (end: number) => {
+    out.push(json.slice(sliceStart, end));
+    sliceStart = end;
+  };
 
-  return json;
+  const escaped = (pos: number) => {
+    let back = 0;
+    for (let k = pos - 1; k >= 0 && json[k] === '\\'; k--) {
+      back++;
+    }
+    return back % 2 === 1;
+  };
+
+  while (i < json.length) {
+    const c = json[i],
+      n = json[i + 1];
+    if (!inCom && c === '"' && !escaped(i)) {
+      inStr = !inStr;
+    }
+    if (inStr) {
+      i++;
+      continue;
+    }
+
+    if (!inCom && c === '/' && n === '/') {
+      // enter //
+      push(i);
+      inCom = true;
+      comType = 'single';
+      i += 2;
+      continue;
+    }
+    if (!inCom && c === '/' && n === '*') {
+      // enter /*
+      push(i);
+      inCom = true;
+      comType = 'multi';
+      i += 2;
+      continue;
+    }
+    if (inCom && comType === 'single' && (c === '\n' || c === '\r')) {
+      // exit //
+      out.push(json.slice(sliceStart, i).replace(/[^\t\r\n ]/g, ' '));
+      sliceStart = i;
+      inCom = false;
+      comType = null;
+      i++;
+      continue;
+    }
+    if (inCom && comType === 'multi' && c === '*' && n === '/') {
+      // exit */
+      out.push(json.slice(sliceStart, i + 2).replace(/[^\t\r\n ]/g, ' '));
+      sliceStart = i + 2;
+      inCom = false;
+      comType = null;
+      i += 2;
+      continue;
+    }
+    i++;
+  }
+  if (inCom) {
+    out.push(json.slice(sliceStart).replace(/[^\t\r\n ]/g, ' '));
+  } else {
+    out.push(json.slice(sliceStart));
+  }
+
+  return out.join('');
 }
 
 function addFileExtension(filePath: string, style: string): string {
