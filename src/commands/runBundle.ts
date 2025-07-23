@@ -18,11 +18,7 @@ export async function runBundle(bundleManager: BundleManager, bundleId: string) 
   if (bundle.configPath) {
     const bundleConfig = await readRepomixFileConfig(cwd, bundle.configPath);
 
-    if (!bundleConfig) {
-      return;
-    }
-
-    overrideConfig = bundleConfig;
+    overrideConfig = bundleConfig ? bundleConfig : {};
   }
 
   if (config.runner.useBundleNameAsOutputName) {
