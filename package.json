@@ -69,7 +69,7 @@
           "repomix.output.filePath": {
             "order": 1,
             "type": "string",
-            "default": "repomix-output.txt",
+            "default": "repomix-output.xml",
             "description": "⚙️ ➡️ ❓\n Path to the output file"
           },
           "repomix.output.style": {
@@ -80,7 +80,7 @@
               "xml",
               "markdown"
             ],
-            "default": "plain",
+            "default": "xml",
             "description": "🎨 \n Output format style"
           },
           "repomix.output.parsableStyle": {
