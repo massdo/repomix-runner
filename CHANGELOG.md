@@ -5,6 +5,26 @@ All notable changes to the "Repomix Runner" extension will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3] - 2025-07-24
+
+### Fixed
+
+- Fixed unnecessary `.repomix` folder creation at extension activation
+- Fixed bundle name as output name feature when no config file exists
+- Fixed JSON config parsing issues with URLs containing double slashes
+- Fixed extension crash when bundle config files are manually deleted
+
+### Changed
+
+- Default output format changed from plain text to XML
+- Default output file extension changed from `.txt` to `.xml`
+
+### Thanks
+
+- [@DanielePessina ](https://github.com/DanielePessina)
+- [@danielraffel](https://github.com/danielraffel)
+- [@mihailmariusiondev](https://github.com/mihailmariusiondev)
+
 ## [0.4.2] - 2025-04-21
 
 ### Changed

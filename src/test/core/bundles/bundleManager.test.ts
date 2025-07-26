@@ -84,7 +84,7 @@ suite('BundleManager', () => {
     );
   });
 
-  test('getAllBundles should initialize and read bundles file', async () => {
+  test('getAllBundles should read bundles file without initializing', async () => {
     // Arrange
     const mockBundles = {
       bundle1: {
@@ -113,7 +113,7 @@ suite('BundleManager', () => {
     const result = await bundleManager.getAllBundles();
 
     // Assert
-    assert.strictEqual(initializeStub.calledOnce, true, 'Should call initialize once');
+    assert.strictEqual(initializeStub.called, false, 'initialize should not be called');
     assert.strictEqual(fsReadFileStub.calledOnce, true, 'Should call readFile once');
     assert.deepStrictEqual(result.bundles, mockBundles, 'Should return bundles from file');
   });
@@ -253,6 +253,9 @@ suite('BundleManager', () => {
       } as unknown as Bundle,
     };
 
+    // Stub fs.access to simulate existing bundles file
+    const fsAccessStub = sandbox.stub(fs.promises, 'access').resolves();
+
     const getAllBundlesStub = sandbox.stub(bundleManager, 'getAllBundles').resolves({
       bundles: { ...mockBundles },
     });
@@ -265,6 +268,7 @@ suite('BundleManager', () => {
     await bundleManager.deleteBundle('bundle1');
 
     // Assert
+    assert.strictEqual(fsAccessStub.calledOnce, true, 'Should check file access once');
     assert.strictEqual(getAllBundlesStub.calledOnce, true, 'Should call getAllBundles once');
     assert.strictEqual(fsWriteFileStub.calledOnce, true, 'Should call writeFile once');
 

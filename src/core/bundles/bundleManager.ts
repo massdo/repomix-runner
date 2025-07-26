@@ -54,12 +54,11 @@ export class BundleManager {
 
   async getAllBundles(): Promise<BundleMetadata> {
     try {
-      await this.initialize();
       const content = await fs.readFile(this.bundlesFile, 'utf-8');
       return JSON.parse(content);
     } catch (error) {
-      console.error('Failed to read bundles:', error);
-      throw error;
+      // Fichier n'existe pas = pas de bundles
+      return { bundles: {} };
     }
   }
 
@@ -80,6 +79,7 @@ export class BundleManager {
 
       const metadata: BundleMetadata = { bundles: bundles };
 
+      await this.initialize();
       await fs.writeFile(this.bundlesFile, JSON.stringify(metadata, null, 2));
 
       this.onDidChangeBundles.fire();
@@ -91,6 +91,14 @@ export class BundleManager {
 
   async deleteBundle(id: string): Promise<void> {
     try {
+      // Vérification d'accès
+      try {
+        await fs.access(this.bundlesFile);
+      } catch {
+        // Fichier n'existe pas = pas de bundle à supprimer
+        return;
+      }
+
       const { bundles } = await this.getAllBundles();
       delete bundles[id];
 
