@@ -3,10 +3,12 @@ dist
 node_modules
 .vscode-test/
 *.vsix
-.prettierrc
 features.txt
 prompts.txt
 repomix-logo.svg
 .repomixignore
 .repomix
 .DS_Store
+.claude
+.cursor
+CLAUDE.md
