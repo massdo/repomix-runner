@@ -534,6 +534,7 @@ suite('configLoader', () => {
       { style: 'plain' as const, extension: '.txt' },
       { style: 'xml' as const, extension: '.xml' },
       { style: 'markdown' as const, extension: '.md' },
+      { style: 'json' as const, extension: '.json' },
     ];
 
     styleExtensionTests.forEach(({ style, extension }) => {
@@ -561,6 +562,25 @@ suite('configLoader', () => {
         };
         const mergedWithExt = await mergeConfigs(testCwd, {}, configWithExt, null);
         assert.strictEqual(path.basename(mergedWithExt.output.filePath), `output${extension}`);
+
+        // Test with other known extension set, it should be replaced (e.g., xml -> json)
+        // Only run this branch when there is at least one other known extension different from the expected one
+        const other = styleExtensionTests.find(e => e.extension !== extension);
+        if (other) {
+          const configWithWrongExt: RepomixRunnerConfigDefault = {
+            ...defaultConfig,
+            output: {
+              ...defaultConfig.output,
+              style,
+              filePath: `output${other.extension}`,
+            },
+          };
+          const mergedWithWrongExt = await mergeConfigs(testCwd, {}, configWithWrongExt, null);
+          assert.strictEqual(
+            path.basename(mergedWithWrongExt.output.filePath),
+            `output${extension}`
+          );
+        }
       });
     });
   });
