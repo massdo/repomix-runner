@@ -78,7 +78,8 @@
             "enum": [
               "plain",
               "xml",
-              "markdown"
+              "markdown",
+              "json"
             ],
             "default": "xml",
             "description": "🎨 \n Output format style"

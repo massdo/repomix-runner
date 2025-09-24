@@ -98,14 +98,25 @@ function addFileExtension(filePath: string, style: string): string {
     xml: '.xml',
     markdown: '.md',
     plain: '.txt',
+    json: '.json',
   };
-  const extension = extensionMap[style];
 
-  if (filePath.endsWith(extension)) {
+  const expectedExt = extensionMap[style];
+  if (!expectedExt) {
     return filePath;
   }
 
-  return `${filePath}${extension}`;
+  if (filePath.endsWith(expectedExt)) {
+    return filePath;
+  }
+
+  const knownExts = Object.values(extensionMap);
+  const currentExt = path.extname(filePath);
+  if (currentExt && knownExts.includes(currentExt)) {
+    return filePath.slice(0, -currentExt.length) + expectedExt;
+  }
+
+  return filePath + expectedExt;
 }
 
 export function readRepomixRunnerVscodeConfig(): RepomixRunnerConfigDefault {
