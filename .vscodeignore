@@ -24,3 +24,7 @@ README.build.md
 .eslintrc.json
 .prettierrc
 .github
+.cursorignore
+.cursor/
+.claude/
+CLAUDE.md
