@@ -9,7 +9,7 @@
     "type": "git",
     "url": "https://github.com/massdo/repomix-runner.git"
   },
-  "version": "0.5.0",
+  "version": "0.5.23",
   "engines": {
     "vscode": "^1.93.0"
   },
@@ -17,7 +17,16 @@
     "AI",
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onCommand:repomixRunner.run",
+    "onCommand:repomixRunner.runOnOpenFiles",
+    "onCommand:repomixRunner.openSettings",
+    "onCommand:repomixRunner.openOutput",
+    "onCommand:repomixRunner.smartRun",
+    "onView:repomixBundles",
+    "onView:repomixRunner.controlPanel",
+    "onStartupFinished"
+  ],
   "contributes": {
     "configuration": [
       {
@@ -224,13 +233,35 @@
             "description": "🔢 \n Token count encoding"
           }
         }
+      },
+      {
+        "title": "Smart Agent",
+        "order": 7,
+        "type": "object",
+        "properties": {}
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "repomix-sidebar",
+          "title": "Repomix Control Panel",
+          "icon": "assets/home.svg"
+        }
+      ]
+    },
     "views": {
       "explorer": [
         {
           "id": "repomixBundles",
           "name": "REPOMIX"
+        }
+      ],
+      "repomix-sidebar": [
+        {
+          "type": "webview",
+          "id": "repomixRunner.controlPanel",
+          "name": "Repomix Runner Control Panel"
         }
       ]
     },
@@ -323,6 +354,12 @@
         "command": "repomixRunner.removeFileFromBundle",
         "title": "Remove from Bundle",
         "icon": "$(trash)"
+      },
+      {
+        "command": "repomixRunner.smartRun",
+        "title": "Repomix: Smart Agent Run",
+        "description": "Use AI to intelligently select and package files based on a natural language query",
+        "icon": "$(sparkle)"
       }
     ],
     "menus": {
@@ -444,24 +481,30 @@
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "rimraf dist && node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "package": "rimraf dist && npm run check-types && npm run lint && node esbuild.js --production",
+    "package": "rimraf dist && npm run lint && node esbuild.js --production",
+    "package:vsix": "node scripts/ensure-bin.mjs && vsce package --out bin/",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
     "test": "vscode-test",
-    "clean": "rimraf dist out"
+    "clean": "rimraf dist out",
+    "build:rust": "node scripts/build-rust.mjs",
+    "package:local": "node scripts/package-local.mjs"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
     "@types/sinon": "^17.0.3",
     "@types/vscode": "^1.93.0",
     "@typescript-eslint/eslint-plugin": "^8.22.0",
     "@typescript-eslint/parser": "^8.22.0",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
+    "@vscode/vsce": "^3.7.1",
     "esbuild": "^0.25.0",
     "eslint": "^9.16.0",
     "globby": "^14.1.0",
@@ -469,10 +512,17 @@
     "rimraf": "^6.0.1",
     "sinon": "^19.0.2",
     "tiktoken": "^1.0.20",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.3"
   },
   "dependencies": {
-    "zod": "^3.24.1"
+    "@fluentui/react-components": "^9.72.8",
+    "@langchain/core": "^1.1.5",
+    "@langchain/google-genai": "^2.1.0",
+    "@langchain/langgraph": "^1.0.4",
+    "fast-xml-parser": "^5.3.3",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "zod": "^3.25.76"
   },
   "__metadata": {
     "size": 944254177

@@ -1,0 +1,8 @@
+[package]
+name = "repomix-clipboard"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clipboard-win = { version = "5.0", features = ["std"] }
+byteorder = "1.5"

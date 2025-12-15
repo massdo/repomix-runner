@@ -19,6 +19,9 @@ import {
 } from './commands/mutateActiveBundle.js';
 import { editBundle } from './commands/editBundle.js';
 import { goToConfigFile } from './commands/goToConfigFile.js';
+import { RepomixWebviewProvider } from './webview/RepomixWebviewProvider.js';
+import { createSmartRepomixGraph } from './agent/graph.js';
+import { logger } from './shared/logger.js';
 
 export function activate(context: vscode.ExtensionContext) {
   const cwd = getCwd();
@@ -37,6 +40,13 @@ export function activate(context: vscode.ExtensionContext) {
 
   const decorationProviderSubscription =
     vscode.window.registerFileDecorationProvider(decorationProvider);
+
+  const provider = new RepomixWebviewProvider(context.extensionUri, bundleManager, context);
+
+  const webviewViewSubscription = vscode.window.registerWebviewViewProvider(
+    RepomixWebviewProvider.viewType,
+    provider
+  );
 
   const addSelectedFilesToNewBundleCommand = vscode.commands.registerCommand(
     'repomixRunner.addSelectedFilesToNewBundle',
@@ -181,6 +191,96 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  const smartRunCommand = vscode.commands.registerCommand('repomixRunner.smartRun', async () => {
+    // 1. Get the Workspace Root
+    let workspaceRoot: string;
+    try {
+      workspaceRoot = getCwd();
+    } catch (error) {
+      logger.both.error("Smart Agent: Failed to get workspace root", error);
+      vscode.window.showErrorMessage("Could not determine workspace root.");
+      return;
+    }
+
+    // 2. Capture User Query
+    let userQuery: string | undefined;
+    while (!userQuery) {
+      userQuery = await vscode.window.showInputBox({
+        title: "Smart Repomix Agent",
+        prompt: "Describe what you want to package",
+        placeHolder: "e.g., 'All authentication logic excluding tests'",
+        ignoreFocusOut: true
+      });
+      if (userQuery === undefined) {
+        return;
+      }
+    }
+
+    // 2. Get API Key (Secrets > Prompt)
+    const apiKey = await context.secrets.get('repomix.agent.googleApiKey');
+
+    // 3. Run the Agent with Progress Indication
+    vscode.window.withProgress({
+      location: vscode.ProgressLocation.Notification,
+      title: "Repomix Agent",
+      cancellable: true
+    }, async (progress, token) => {
+      progress.report({ message: "Initializing agent..." });
+
+      try {
+        // Initialize the Graph
+        const app = createSmartRepomixGraph();
+
+        // Prepare Initial State
+        const inputs = {
+          userQuery: userQuery,
+          workspaceRoot: workspaceRoot,
+          allFilePaths: [],
+          candidateFiles: [],
+          confirmedFiles: [],
+          finalCommand: ""
+        };
+
+        // Run the Graph
+        // We pass a dummy thread_id required by LangGraph checkpointers (even if in-memory)
+        const config = { configurable: { thread_id: "1" } };
+
+        // Invoke the agent
+        progress.report({ message: "Thinking & Filtering files..." });
+
+        const finalState = await app.invoke(inputs, config);
+
+        // Success Message
+        const fileCount = finalState.confirmedFiles.length;
+        if (fileCount > 0) {
+          vscode.window.showInformationMessage(
+            `Agent run complete! Packaged ${fileCount} files based on: "${userQuery}"`
+          );
+        } else {
+          vscode.window.showWarningMessage(
+            `No relevant files found for: "${userQuery}"`
+          );
+        }
+
+      } catch (error: any) {
+        logger.both.error("Smart Agent Failed:", error);
+
+        // specific error handling for missing API key
+        if (error.message.includes("Google API Key")) {
+          const selection = await vscode.window.showErrorMessage(
+            "Google API Key missing.",
+            "Open Settings"
+          );
+          if (selection === "Open Settings") {
+            vscode.commands.executeCommand('workbench.action.openSettings', 'repomix.agent.googleApiKey');
+          }
+        } else {
+          vscode.window.showErrorMessage(`Agent failed: ${error.message}`);
+        }
+      }
+    });
+  });
+
   // Ajouter toutes les souscriptions au contexte
   context.subscriptions.push(
     goToConfigFileCommand,
@@ -195,12 +295,14 @@ export function activate(context: vscode.ExtensionContext) {
     selectActiveBundleCommand,
     createBundleCommand,
     decorationProviderSubscription,
+    webviewViewSubscription,
     bundleTreeView,
     addSelectedFilesToActiveBundleCommand,
     addSelectedFilesToNewBundleCommand,
     removeSelectedFilesFromExplorerToActiveBundleCommand,
     removeSelectedFilesFromCustomViewToActiveBundleCommand,
-    refreshBundlesCommand
+    refreshBundlesCommand,
+    smartRunCommand
   );
 }
 

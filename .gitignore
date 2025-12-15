@@ -9,6 +9,10 @@ repomix-logo.svg
 .repomixignore
 .repomix
 .DS_Store
-.claude
 .cursor
-CLAUDE.md
+rust/target/
+assets/bin/*.exe
+assets/bin/
+*.exe
+bin/
+repomix-output.xml

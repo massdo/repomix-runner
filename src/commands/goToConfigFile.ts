@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { BundleManager } from '../core/bundles/bundleManager';
 import { fileAccess } from '../shared/files';
 import { showTempNotification } from '../shared/showTempNotification';
@@ -89,7 +90,12 @@ async function createConfigFile(cwd: string, bundleName: string): Promise<string
 
   const globalConfig = await mergeConfigs(cwd, configFile, vscodeConfig);
 
-  const { runner, ...bundleConfig } = globalConfig;
+  const { runner, cwd: _, ...bundleConfig } = globalConfig;
+
+  // Ensure output filePath is relative to project root
+  if (bundleConfig.output?.filePath) {
+    bundleConfig.output.filePath = path.relative(cwd, bundleConfig.output.filePath);
+  }
 
   const initialConfigContent = JSON.stringify(bundleConfig, null, 2);
 
