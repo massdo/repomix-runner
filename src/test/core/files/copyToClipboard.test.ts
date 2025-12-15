@@ -5,10 +5,11 @@ import * as os from 'os';
 import { copyToClipboard } from '../../../core/files/copyToClipboard.js';
 import { tempDirManager } from '../../../core/files/tempDirManager.js';
 import * as path from 'path';
+import * as fs from 'fs';
 
 type TestCase = {
   os: 'darwin' | 'win32' | 'linux';
-  expectedCommand: string;
+  expectedCommand: string | RegExp;
 };
 
 suite('copyToClipboard', () => {
@@ -17,17 +18,32 @@ suite('copyToClipboard', () => {
   let showErrorMessageStub: sinon.SinonStub;
   let accessStub: sinon.SinonStub;
   let createTempDirStub: sinon.SinonStub;
+  let existsSyncStub: sinon.SinonStub;
+
   setup(() => {
     copyFileStub = sinon.stub();
     execPromisifyStub = sinon.stub().resolves({ stdout: '', stderr: '' });
     showErrorMessageStub = sinon.stub(vscode.window, 'showErrorMessage');
     accessStub = sinon.stub().resolves();
     createTempDirStub = sinon.stub();
+    existsSyncStub = sinon.stub(fs, 'existsSync');
   });
 
   teardown(() => {
     sinon.restore();
   });
+
+  // Construct expected regex for Windows that handles both slash types to be safe,
+  // or matches what the code actually produces.
+  // The code produces: `"${getWin32BinaryPath()}" "${path}"`
+  // The path argument is what matters.
+  // We normalized '/path/to/tmp/output.txt' in the test setup.
+  // On Linux/Mac: /path/to/tmp/output.txt
+  // On Win: \path\to\tmp\output.txt
+  // The regex should be flexible.
+  // We'll use [\\/] to match either separator.
+  const winSep = '[\\\\/]';
+  const winPathRegex = new RegExp(`"repomix-clipboard\\.exe" ".*${winSep}path${winSep}to${winSep}tmp${winSep}output\\.txt"`);
 
   const testCases: TestCase[] = [
     {
@@ -38,7 +54,7 @@ suite('copyToClipboard', () => {
     },
     {
       os: 'win32',
-      expectedCommand: `clip < "${path.normalize('/path/to/tmp/output.txt')}"`,
+      expectedCommand: winPathRegex,
     },
     {
       os: 'linux',
@@ -49,24 +65,6 @@ suite('copyToClipboard', () => {
   ];
 
   testCases.forEach(({ os: osType, expectedCommand }) => {
-    /**
-     * Test to ensure error handling when file copy fails on different operating systems.
-     *
-     * Steps:
-     * 1. Setup test data with output and temp file paths
-     * 2. Configure copyFile stub to simulate a failure
-     * 3. Call copyToClipboard with the current OS configuration
-     * 4. Verify error handling:
-     *    - Check if copyFile was called with correct paths
-     *    - Ensure error message is displayed in VS Code
-     *    - Validate the error is propagated
-     *
-     * Why it could break:
-     * - File system permissions issues specific to the OS
-     * - Different error message formats across OS
-     * - Path formatting issues specific to the OS
-     * - VS Code's showErrorMessage might behave differently per OS
-     */
     test(`should show error message if copy file fails on ${osType}`, async () => {
       const outputFileAbs = path.normalize('/path/to/output.txt');
       const tmpFilePath = path.normalize('/path/to/tmp/output.txt');
@@ -93,29 +91,16 @@ suite('copyToClipboard', () => {
       }
     });
 
-    /**
-     * Test to verify clipboard command execution for different operating systems.
-     *
-     * Steps:
-     * 1. Setup test data with output and temp file paths
-     * 2. Configure stubs to simulate successful operations
-     * 3. Call copyToClipboard with the current OS configuration
-     * 4. Verify:
-     *    - File is copied to temp location
-     *    - Correct OS-specific clipboard command is executed
-     *
-     * Why it could break:
-     * - OS-specific clipboard commands might change
-     * - Command syntax might be incorrect for specific OS versions
-     * - Required clipboard tools might be missing (xclip on Linux)
-     * - Path escaping might fail on certain OS configurations
-     */
     test(`should execute correct clipboard command for ${osType}`, async () => {
       const outputFileAbs = path.normalize('/path/to/output.txt');
       const tmpFilePath = path.normalize('/path/to/tmp/output.txt');
 
       copyFileStub.resolves();
       execPromisifyStub.resolves({ stdout: '', stderr: '' });
+
+      if (osType === 'win32') {
+          existsSyncStub.returns(false); // Fallback to 'repomix-clipboard.exe'
+      }
 
       await copyToClipboard(outputFileAbs, tmpFilePath, osType, {
         copyFile: copyFileStub,
@@ -125,24 +110,15 @@ suite('copyToClipboard', () => {
       });
 
       sinon.assert.calledWith(copyFileStub, outputFileAbs, tmpFilePath);
-      sinon.assert.calledWith(execPromisifyStub, expectedCommand);
+
+      if (expectedCommand instanceof RegExp) {
+          sinon.assert.calledWithMatch(execPromisifyStub, expectedCommand);
+      } else {
+          sinon.assert.calledWith(execPromisifyStub, expectedCommand);
+      }
     });
   });
 
-  /**
-   * Test to verify that the temporary directory is recreated if it is deleted during the session.
-   *
-   * Steps:
-   * 1. Setup test data with output and temp file paths.
-   * 2. Simulate the deletion of the temp directory by rejecting the access check.
-   * 3. Call copyToClipboard with the current configuration.
-   * 4. Verify:
-   *    - The temp directory is recreated with the correct name.
-   *
-   * Why it could break:
-   * - The temp directory might not be recreated correctly.
-   * - The path to the temp directory might be incorrect.
-   */
   test('should recreate temp dir if it is deleted during session', async () => {
     const outputFileAbs = path.normalize('/path/to/output.txt');
     const tmpFilePath = path.normalize('/path/to/tmp/output.txt');
@@ -162,6 +138,4 @@ suite('copyToClipboard', () => {
 
     assert.strictEqual(testdir, path.join(osTempDir, 'test'));
   });
-  // TODO check the copypaste -> integration test ?
-  // });
 });

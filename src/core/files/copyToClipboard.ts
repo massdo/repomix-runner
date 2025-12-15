@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import { execPromisify } from '../../shared/execPromisify.js';
 import { copyFile, access } from 'fs/promises';
 import { tempDirManager } from './tempDirManager.js';
+import * as path from 'path';
+import * as fs from 'fs';
 
 type OperatingSystem = 'darwin' | 'win32' | 'linux';
 
@@ -21,9 +23,28 @@ function toUri(path: string): string {
 const CLIPBOARD_COMMANDS = {
   darwin: (path: string) =>
     `osascript -e 'tell application "Finder" to set the clipboard to (POSIX file "${path}")'`,
-  win32: (path: string) => `clip < "${path}"`,
+  win32: (path: string) => {
+    return `"${getWin32BinaryPath()}" "${path}"`;
+  },
   linux: (path: string) => `echo "${toUri(path)}" | xclip -selection clipboard -t text/uri-list`,
 } as const;
+
+function getWin32BinaryPath(): string {
+    const possiblePaths = [
+        path.join(__dirname, '..', 'assets', 'bin', 'repomix-clipboard.exe'), // dist/../assets = assets
+        path.join(__dirname, 'assets', 'bin', 'repomix-clipboard.exe'),       // dist/assets?
+        path.join(__dirname, '..', '..', '..', 'assets', 'bin', 'repomix-clipboard.exe'), // src/core/files/../../../assets (dev)
+        path.join(process.cwd(), 'assets', 'bin', 'repomix-clipboard.exe') // Fallback to CWD
+    ];
+
+    for (const p of possiblePaths) {
+        if (fs.existsSync(p)) {
+            return p;
+        }
+    }
+
+    return 'repomix-clipboard.exe';
+}
 
 export async function copyToClipboard(
   outputFileAbs: string,
@@ -74,7 +95,11 @@ export async function copyToClipboard(
     const command = CLIPBOARD_COMMANDS[os](tmpFilePath);
     await dep.execPromisify(command);
   } catch (err: any) {
-    vscode.window.showErrorMessage(`Error setting file to clipboard: ${err.message}`);
+    if (os === 'win32') {
+         vscode.window.showErrorMessage(`Error setting file to clipboard using helper tool: ${err.message}. Ensure repomix-clipboard.exe is correctly installed.`);
+    } else {
+        vscode.window.showErrorMessage(`Error setting file to clipboard: ${err.message}`);
+    }
     throw err;
   }
 }
