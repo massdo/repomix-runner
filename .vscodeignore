@@ -26,5 +26,12 @@ README.build.md
 .github
 .cursorignore
 .cursor/
-.claude/
-CLAUDE.md
+rust/target/
+rust/**/*.o
+rust/**/*.rs.bk
+Cargo.lock
+scripts/
+*.vsix
+!assets/bin/
+!assets/bin/*.exe
+repomix-output.xml

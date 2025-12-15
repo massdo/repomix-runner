@@ -16,17 +16,24 @@ Repomix Runner is a VSCode extension that allows you to easily bundle files into
 
 - 📁 Pack your selection of files into a single output for AI processing.
 - 📦 Create reusable bundles for parts of your project you frequently package.
-- 📎 Two copy modes for clipboard: content or file. -> you can paste a whole file not just content.
+- 🎛️ **New Control Panel** for managing bundles and settings.
+- 📎 **Cross-platform Copy Modes**: copy content text or file object (paste directly into other apps). Works on Windows, macOS, and Linux!
 - 🗑️ Optional output file cleanup. -> But you still have it in clipboard! 😀
 - 🛠️ Easy settings in vscode and/or support a repomix.config.json file.
 
 ## 📖 Usage
 
-With the **_REPOMIX_** custom view, all is in one place 🎉 :
+### 🎛️ Repomix Control Panel
+
+Access the **Repomix Control Panel** from the Activity Bar (Repomix icon). It provides a comprehensive view of your bundles and allows you to run, edit, or delete them easily.
+
+### 📂 Explorer View
+
+With the **_REPOMIX_** custom view in the Explorer, all is in one place 🎉 :
 
 (keep in mind the output-file is also in your clipboard).
 
-### ⬇️ - Run Repomix on selection
+#### ⬇️ - Run Repomix on selection
 
 https://github.com/user-attachments/assets/21272ff9-0bf1-48dc-a583-34355bb35ced
 
@@ -36,7 +43,7 @@ https://github.com/user-attachments/assets/21272ff9-0bf1-48dc-a583-34355bb35ced
   </video>
 </div>
 
-### ⬇️ - Create a bundle with custom config
+#### ⬇️ - Create a bundle with custom config
 
 https://github.com/user-attachments/assets/134e7fdf-1e98-429f-b16c-a76e99dc761f
 
@@ -74,12 +81,13 @@ Open the palette with `Cmd+Shift+P` or `Ctrl+Shift+P` then:
 
 - VS Code 1.93.0 or higher
 - Node.js and npm installed (for `npx`)
-- macOS for file copy mode
-- xclip installed for file copy mode on linux
+- **Windows**: Built-in support for file copy mode
+- **macOS**: Built-in support for file copy mode
+- **Linux**: Requires `xclip` installed for file copy mode
 
 ## ⚠️ Known Issues
 
-- File copy mode is only available on macOS and linux (you need to install xclip for file copy mode on linux)
+- File copy mode on Linux requires `xclip` to be installed.
 
 ## 🤝 Contributing
 

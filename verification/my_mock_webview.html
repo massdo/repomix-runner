@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mock Webview</title>
+</head>
+<body>
+  <div id="root"></div>
+  <script>
+    window.process = { env: { NODE_ENV: "development" } };
+  </script>
+  <script>
+    // Mock VS Code API BEFORE loading the app
+    window.acquireVsCodeApi = () => ({
+      postMessage: (msg) => {
+        console.log("VSCode Message:", msg);
+        if (msg.command === "webviewLoaded") {
+           // Simulate backend response
+           console.log("Webview loaded, sending bundles...");
+           // Use requestAnimationFrame or just send immediately to catch React lifecycle?
+           // The event listener is added in useEffect.
+           setTimeout(() => {
+               window.postMessage({
+                 command: "updateBundles",
+                 bundles: [
+                   {
+                     id: "b1",
+                     name: "My Bundle",
+                     description: "This is a description",
+                     files: ["src/index.ts", "src/utils.ts"],
+                     outputFileExists: true,
+                     stats: { files: 2, folders: 0, totalSize: 1024 }
+                   },
+                   {
+                     id: "b2",
+                     name: "Missing Output",
+                     files: ["README.md"],
+                     outputFileExists: false,
+                     stats: { files: 1, folders: 0, totalSize: 512 }
+                   }
+                 ]
+               }, "*");
+           }, 500);
+        }
+      },
+      getState: () => ({}),
+      setState: () => {}
+    });
+  </script>
+  <script type="module" src="/dist/webview.js"></script>
+</body>
+</html>

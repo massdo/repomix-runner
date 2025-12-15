@@ -1,0 +1,60 @@
+name: "Code Review by Gemini AI"
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: "Get diff of the pull request"
+        id: get_diff
+        shell: bash
+        run: |-
+          # Fetch the PR merge ref to ensure we have the commits
+          git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-head
+
+          # Diff between the PR base ref (on origin) and the fetched PR head
+          git diff "origin/${{ github.event.pull_request.base.ref }}...pr-head" > "diff.txt"
+
+          # Generate a random delimiter
+          delimiter="$(openssl rand -hex 8)"
+
+          {
+            echo "pull_request_diff<<${delimiter}"
+            cat "diff.txt"
+            echo "${delimiter}"
+          } >> $GITHUB_OUTPUT
+
+      - uses: rubensflinco/gemini-code-review-action@1.0.5
+        name: "Code Review by Gemini AI"
+        id: review
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_repository: ${{ github.repository }}
+          github_pull_request_number: ${{ github.event.pull_request.number }}
+          git_commit_hash: ${{ github.event.pull_request.head.sha }}
+          model: "gemini-2.5-flash"
+          pull_request_diff: |-
+            ${{ steps.get_diff.outputs.pull_request_diff }}
+          pull_request_chunk_size: "3500"
+          extra_prompt: |-
+            Please review this pull request and provide feedback on:
+            - Code quality and best practices
+            - Potential bugs or issues
+            - Performance considerations
+            - Security concerns
+            - Test coverage
+            Be constructive and helpful in your feedback.
+          log_level: "DEBUG"

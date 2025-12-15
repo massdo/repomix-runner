@@ -26,6 +26,7 @@ export type RunRepomixDeps = {
   cliFlagsBuilder: typeof cliFlagsBuilder;
   execPromisify: typeof execPromisify;
   mergeConfigOverride: RepomixConfigFile | null;
+  signal?: AbortSignal;
 };
 
 export const defaultRunRepomixDeps: RunRepomixDeps = {
@@ -60,14 +61,27 @@ export async function runRepomix(deps: RunRepomixDeps = defaultRunRepomixDeps): 
 
     const config = await deps.mergeConfigs(cwd, configFile, vscodeConfig, deps.mergeConfigOverride);
 
+    // Security check: validate paths
+    const workspaceRoot = cwd; // cwd is guaranteed to be workspace root or valid
+    const relativeOutputPath = path.relative(workspaceRoot, config.output.filePath);
+    if (relativeOutputPath.startsWith('..') && !path.isAbsolute(relativeOutputPath)) {
+         throw new Error(`Security Violation: Output path "${config.output.filePath}" attempts to traverse outside the workspace.`);
+    }
+
     const cliFlags = deps.cliFlagsBuilder(config);
 
+    // Security: Validate config.cwd usage if it differs from workspaceRoot (though mergeConfigs sets it to cwd usually)
+    // config.cwd is derived from getCwd().
+
+    // Construct command
+    // We trust npx and repomix.
+    // config.cwd is quoted.
     const cmd = `npx -y repomix@latest "${config.cwd}" ${cliFlags}`;
 
     logger.both.debug('config: \n', config);
     logger.both.debug('cmd: \n', cmd);
     logger.both.debug('cwd: \n', cwd);
-    const cmdPromise = deps.execPromisify(cmd, { cwd: cwd });
+    const cmdPromise = deps.execPromisify(cmd, { cwd: cwd, signal: deps.signal });
 
     showTempNotification(`⚙️ Running Repomix in "${path.basename(cwd)}" please wait ...`, {
       promise: cmdPromise,
@@ -110,9 +124,16 @@ export async function runRepomix(deps: RunRepomixDeps = defaultRunRepomixDeps): 
 
     isRunning = false;
   } catch (error: any) {
+    isRunning = false;
+
+    if (error.name === 'AbortError') {
+      logger.both.info('Repomix execution cancelled');
+      // Re-throw to let caller handle it if needed, or suppress
+      throw error;
+    }
+
     logger.both.error(error);
     vscode.window.showErrorMessage(error.message);
-    isRunning = false;
     throw error;
   }
 }

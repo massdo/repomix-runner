@@ -9,6 +9,21 @@ repomix-logo.svg
 .repomixignore
 .repomix
 .DS_Store
-.claude
 .cursor
 CLAUDE.md
+
+# Rust
+rust/target/
+Cargo.lock
+**/*.rs.bk
+*.pdb
+*.exe
+*.dll
+*.so
+*.dylib
+*.d
+*.rlib
+repomix-output.xml
+bin/
+assets/bin/*.exe
+assets/bin/
