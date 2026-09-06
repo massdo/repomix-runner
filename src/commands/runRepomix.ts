@@ -71,6 +71,9 @@ export async function runRepomix(deps: RunRepomixDeps = defaultRunRepomixDeps): 
 
     showTempNotification(`⚙️ Running Repomix in "${path.basename(cwd)}" please wait ...`, {
       promise: cmdPromise,
+    }).catch(() => {
+      // cmdPromise's rejection is already handled below via `await cmdPromise`
+      // and this function's catch block; avoid a second, unhandled rejection here.
     });
 
     const { stderr, stdout } = await cmdPromise;

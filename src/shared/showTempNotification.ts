@@ -24,12 +24,8 @@ export async function showTempNotification(
 
         if (promise) {
           // Promise to wait for
-          try {
-            await promise;
-            progress.report({ increment: 100 });
-          } catch (error) {
-            throw error;
-          }
+          await promise;
+          progress.report({ increment: 100 });
         } else {
           // Timer mode
           const steps = 100;
