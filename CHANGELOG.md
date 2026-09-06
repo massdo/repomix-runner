@@ -5,6 +5,16 @@ All notable changes to the "Repomix Runner" extension will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.2] - 2026-09-06
+
+### Fixed
+
+- A successful Repomix run is no longer reported as a failure when the command writes to `stderr`. Anything a healthy run prints there — npm notices, Node deprecation warnings, `npx` download progress — used to abort the run, so the clipboard copy, the success notification and the output cleanup never happened. Real failures are still reported. Affects Run, Run on Selection, Run on Open Files and Run Bundle.
+
+### Thanks
+
+- [@DevGuyRash](https://github.com/DevGuyRash) for reporting [#40](https://github.com/MassDo/repomix-runner/issues/40) with an exact diagnosis and the fix.
+
 ## [0.5.1] - 2026-09-06
 
 ### Changed
