@@ -1,0 +1,101 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  # Manual runs validate and package only. Publishing requires a tag push.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    outputs:
+      publish: ${{ steps.version.outputs.publish }}
+      vsix: ${{ steps.version.outputs.vsix }}
+      artifact-id: ${{ steps.artifact.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Validate release ref
+        id: version
+        run: node .github/scripts/release.cjs metadata
+
+      - run: npm ci
+      - run: npm run test:release
+      - name: Test extension
+        run: xvfb-run -a npm test
+      - name: Package
+        env:
+          VSIX: ${{ steps.version.outputs.vsix }}
+        run: npx --yes @vscode/vsce@3.9.2 package --out "$RUNNER_TEMP/$VSIX"
+      - name: Keep build artifact
+        id: artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: vsix-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/${{ steps.version.outputs.vsix }}
+          if-no-files-found: error
+          retention-days: 90
+
+  publish:
+    needs: build
+    if: github.event_name == 'push' && github.ref_type == 'tag' && needs.build.outputs.publish == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      VSIX: ${{ needs.build.outputs.vsix }}
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+
+      - name: Check publication secrets
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          test -n "$VSCE_PAT" || { echo '::error::Missing VSCE_PAT'; exit 1; }
+          test -n "$OVSX_PAT" || { echo '::error::Missing OVSX_PAT'; exit 1; }
+
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          artifact-ids: ${{ needs.build.outputs.artifact-id }}
+          path: ${{ runner.temp }}/candidate
+          merge-multiple: true
+
+      # Save the VSIX in a draft release before either registry is modified.
+      # Every retry restores this original file, even after re-running all jobs.
+      - name: Preserve or restore publication artifact
+        run: node .github/scripts/release.cjs prepare "$RUNNER_TEMP/candidate/$VSIX" "$RUNNER_TEMP/publish"
+
+      - name: Publish to VS Code Marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: npx --yes @vscode/vsce@3.9.2 publish --packagePath "$RUNNER_TEMP/publish/$VSIX" --skip-duplicate
+
+      - name: Publish to Open VSX
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: npx --yes ovsx@1.1.1 publish "$RUNNER_TEMP/publish/$VSIX" --skip-duplicate
+
+      - name: Publish GitHub release
+        run: node .github/scripts/release.cjs finish

@@ -451,6 +451,7 @@
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
     "test": "vscode-test",
+    "test:release": "node --test .github/scripts/release.test.cjs",
     "clean": "rimraf dist out"
   },
   "devDependencies": {
@@ -473,8 +474,5 @@
   },
   "dependencies": {
     "zod": "^3.24.1"
-  },
-  "__metadata": {
-    "size": 944254177
   }
 }
