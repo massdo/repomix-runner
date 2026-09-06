@@ -79,9 +79,11 @@ export async function runRepomix(deps: RunRepomixDeps = defaultRunRepomixDeps): 
       logger.both.info('stdout: \n', stdout);
     }
 
+    // A successful run can still write to stderr (npm notices, node warnings, npx
+    // download progress). execPromisify already rejects on a non-zero exit code,
+    // so stderr alone must not fail the run. See issue #40.
     if (stderr) {
-      logger.both.error('stderr: \n', stderr);
-      throw new Error(stderr);
+      logger.both.warn('stderr: \n', stderr);
     }
 
     const tmpFilePath = path.join(

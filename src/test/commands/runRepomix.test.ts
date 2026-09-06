@@ -9,11 +9,23 @@ import { tempDirManager } from '../../core/files/tempDirManager.js';
 type PromiseWithChild<T> = Promise<T> & { child: ChildProcess };
 
 suite('runRepomix', () => {
-  const mockExecPromisify = ((command: string, options?: ExecOptions) => {
-    const promise = Promise.resolve({ stdout: '', stderr: '' });
-    (promise as PromiseWithChild<{ stdout: string; stderr: string }>).child = {} as ChildProcess;
-    return promise as PromiseWithChild<{ stdout: string; stderr: string }>;
-  }) as unknown as typeof execPromisify;
+  const mockExecPromisifyWith = (stderr: string) =>
+    ((command: string, options?: ExecOptions) => {
+      const promise = Promise.resolve({ stdout: '', stderr });
+      (promise as PromiseWithChild<{ stdout: string; stderr: string }>).child = {} as ChildProcess;
+      return promise as PromiseWithChild<{ stdout: string; stderr: string }>;
+    }) as unknown as typeof execPromisify;
+
+  const mockExecPromisify = mockExecPromisifyWith('');
+
+  const mockExecPromisifyRejecting = (message: string) =>
+    ((command: string, options?: ExecOptions) => {
+      const promise: Promise<{ stdout: string; stderr: string }> = Promise.reject(
+        new Error(message)
+      );
+      (promise as PromiseWithChild<{ stdout: string; stderr: string }>).child = {} as ChildProcess;
+      return promise as PromiseWithChild<{ stdout: string; stderr: string }>;
+    }) as unknown as typeof execPromisify;
 
   const baseTestConfig: MergedConfig = {
     cwd: '/fake/target',
@@ -133,6 +145,125 @@ suite('runRepomix', () => {
       cleanOutputFileArgs[0],
       '/fake/output.txt',
       'cleanOutputFile should be called with correct file path'
+    );
+  });
+
+  test('should complete the run when the command writes to stderr but exits successfully', async () => {
+    // npm writes informational notices to stderr on a successful run, see issue #40
+    const npmNotice = "npm notice run npx\nnpm notice run 'repomix' --version\n";
+
+    // Setup
+    let copyToClipboardCalled = false;
+    let cleanOutputFileCalled = false;
+
+    const mockConfig = {
+      ...baseTestConfig,
+      runner: {
+        ...baseTestConfig.runner,
+        keepOutputFile: false,
+      },
+      output: {
+        ...baseTestConfig.output,
+        copyToClipboard: true,
+      },
+    };
+
+    const mockDeps = {
+      tempDirManager: tempDirManager,
+      getCwd: () => baseTestConfig.cwd,
+      copyToClipboard: () => {
+        copyToClipboardCalled = true;
+        return Promise.resolve();
+      },
+      cleanOutputFile: () => {
+        cleanOutputFileCalled = true;
+        return Promise.resolve();
+      },
+      mergeConfigs: () => Promise.resolve(mockConfig),
+      readRepomixRunnerVscodeConfig: () => mockConfig,
+      readRepomixFileConfig: () => Promise.resolve(),
+      cliFlagsBuilder: () => '',
+      execPromisify: mockExecPromisifyWith(npmNotice),
+      mergeConfigOverride: null,
+    };
+
+    // Execute
+    await runRepomix(mockDeps);
+
+    // Assert
+    assert.strictEqual(
+      copyToClipboardCalled,
+      true,
+      'copyToClipboard should still run when stderr is not empty'
+    );
+    assert.strictEqual(
+      cleanOutputFileCalled,
+      true,
+      'cleanOutputFile should still run when stderr is not empty'
+    );
+  });
+
+  test('should still fail when the command exits with a non-zero status', async () => {
+    // Setup
+    let copyToClipboardCalled = false;
+    let cleanOutputFileCalled = false;
+
+    const mockConfig = {
+      ...baseTestConfig,
+      runner: {
+        ...baseTestConfig.runner,
+        keepOutputFile: false,
+      },
+      output: {
+        ...baseTestConfig.output,
+        copyToClipboard: true,
+      },
+    };
+
+    const makeDeps = (execPromisifyMock: typeof mockExecPromisify) => ({
+      tempDirManager: tempDirManager,
+      getCwd: () => baseTestConfig.cwd,
+      copyToClipboard: () => {
+        copyToClipboardCalled = true;
+        return Promise.resolve();
+      },
+      cleanOutputFile: () => {
+        cleanOutputFileCalled = true;
+        return Promise.resolve();
+      },
+      mergeConfigs: () => Promise.resolve(mockConfig),
+      readRepomixRunnerVscodeConfig: () => mockConfig,
+      readRepomixFileConfig: () => Promise.resolve(),
+      cliFlagsBuilder: () => '',
+      execPromisify: execPromisifyMock,
+      mergeConfigOverride: null,
+    });
+
+    // Execute
+    await assert.rejects(
+      () => runRepomix(makeDeps(mockExecPromisifyRejecting('repomix exited with code 1'))),
+      /repomix exited with code 1/,
+      'runRepomix should reject when the command exits with a non-zero status'
+    );
+
+    // Assert
+    assert.strictEqual(
+      copyToClipboardCalled,
+      false,
+      'copyToClipboard should not run when the command failed'
+    );
+    assert.strictEqual(
+      cleanOutputFileCalled,
+      false,
+      'cleanOutputFile should not run when the command failed'
+    );
+
+    // The run lock must be released so a later run still goes through
+    await runRepomix(makeDeps(mockExecPromisify));
+    assert.strictEqual(
+      copyToClipboardCalled,
+      true,
+      'a later run should still go through after a failure'
     );
   });
 });
