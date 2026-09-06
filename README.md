@@ -2,10 +2,16 @@
 
 You can support this project by giving a star on GitHub ! ⭐️ 🔭 🙏
 
-[![GitHub](https://img.shields.io/github/stars/massdo/repomix-runner?style=social)](https://github.com/massdo/repomix-runner)
-[![Version](https://img.shields.io/visual-studio-marketplace/v/DorianMassoulier.repomix-runner)](https://marketplace.visualstudio.com/items?itemName=DorianMassoulier.repomix-runner)
-[![Installs](https://img.shields.io/visual-studio-marketplace/i/DorianMassoulier.repomix-runner)](https://marketplace.visualstudio.com/items?itemName=DorianMassoulier.repomix-runner)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<p>
+  <a href="https://github.com/massdo/repomix-runner"><img alt="Stars" src="https://img.shields.io/github/stars/massdo/repomix-runner?style=plastic&logo=github&logoColor=white&label=Stars&labelColor=181717&color=f0b400"></a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=DorianMassoulier.repomix-runner&ssr=false#review-details"><img alt="Rating" src="https://img.shields.io/badge/Rating-%E2%98%85%E2%98%85%E2%98%85%E2%98%85%E2%98%85%20%284%29-007acc?style=plastic&labelColor=0d1117"></a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=DorianMassoulier.repomix-runner"><img alt="Total installs" src="https://img.shields.io/badge/Total-20.6k-2ea44f?style=plastic&labelColor=0d1117"></a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=DorianMassoulier.repomix-runner"><img alt="VS Code installs" src="https://img.shields.io/badge/VS%20Code-17k-007acc?style=plastic&logo=visualstudiocode&logoColor=white&labelColor=0d1117"></a>
+  <a href="https://open-vsx.org/extension/DorianMassoulier/repomix-runner"><img alt="Open VSX installs" src="https://img.shields.io/open-vsx/dt/DorianMassoulier/repomix-runner?style=plastic&logo=eclipseide&logoColor=white&label=Open%20VSX&labelColor=0d1117&color=c160ef"></a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=DorianMassoulier.repomix-runner"><img alt="VS Code version" src="https://img.shields.io/open-vsx/v/DorianMassoulier/repomix-runner?style=plastic&logo=visualstudiocode&logoColor=white&label=VS%20Code&labelColor=0d1117&color=007acc"></a>
+  <a href="https://open-vsx.org/extension/DorianMassoulier/repomix-runner"><img alt="Open VSX version" src="https://img.shields.io/open-vsx/v/DorianMassoulier/repomix-runner?style=plastic&logo=eclipseide&logoColor=white&label=Open%20VSX&labelColor=0d1117&color=c160ef"></a>
+  <a href="https://opensource.org/licenses/MIT"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow?style=plastic&labelColor=0d1117"></a>
+</p>
 
 <!-- [![Twitter](https://img.shields.io/twitter/follow/DorianMass49637
 )](https://twitter.com/DorianMass49637) -->
