@@ -37,6 +37,12 @@ jobs:
 
       - run: npm ci
       - run: npm run test:release
+      # Integration tests invoke both specs; npx caches them separately.
+      # Download before the timed tests, especially on a fresh hosted runner.
+      - name: Prepare Repomix CLI
+        run: |
+          npx --yes repomix@latest --version
+          npx --yes repomix --version
       - name: Test extension
         run: xvfb-run -a npm test
       - name: Package

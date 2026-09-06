@@ -8,6 +8,8 @@ Ubuntu installation is needed. Publishing tools are pinned to vsce 3.9.2 and ovs
 
 Pushes to `main`, pull requests targeting `main`, and manual runs execute the
 release regression tests, the extension tests under `xvfb`, and VSIX packaging.
+The Repomix CLI is downloaded before the timed integration tests so a fresh
+runner's first installation does not consume their 10-second timeout.
 They retain the VSIX as an Actions artifact for 90 days and never publish it.
 They do not need either publication secret.
 
