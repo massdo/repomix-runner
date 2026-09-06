@@ -5,6 +5,17 @@ All notable changes to the "Repomix Runner" extension will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2026-09-06
+
+### Changed
+
+- Updated dependencies through Dependabot: flatted, minimatch, glob, js-yaml, brace-expansion, and shell-quote.
+- Automated tested releases to VS Code Marketplace and Open VSX, with recovery after partial publication.
+
+### Fixed
+
+- Removed stale installation metadata from the extension manifest.
+
 ## [0.5.0] - 2025-09-25
 
 ### Added
